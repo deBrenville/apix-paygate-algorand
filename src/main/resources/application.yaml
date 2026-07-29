@@ -1,0 +1,13 @@
+quarkus:
+  http:
+    port: 8080
+  log:
+    level: INFO
+
+onramp:
+  app-name: "APIX x402 Onramp"
+  # Algorand network + facilitator (pinned during the x402 spike, Task 2)
+  network: "algorand-testnet"
+  facilitator-url: "https://facilitator.goplausible.xyz"
+  # USDCa testnet ASA id — placeholder until pinned by the spike against facilitator docs
+  usdc-asset-id: "0"

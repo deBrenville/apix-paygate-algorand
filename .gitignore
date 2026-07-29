@@ -1,0 +1,16 @@
+# Build
+target/
+*.class
+
+# Secrets — NEVER commit wallet material
+.env
+*.mnemonic
+secrets/
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+
+# Quarkus
+.quarkus/
