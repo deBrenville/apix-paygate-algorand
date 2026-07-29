@@ -9,5 +9,5 @@ onramp:
   # Algorand network + facilitator (pinned during the x402 spike, Task 2)
   network: "algorand-testnet"
   facilitator-url: "https://facilitator.goplausible.xyz"
-  # USDCa testnet ASA id — placeholder until pinned by the spike against facilitator docs
-  usdc-asset-id: "0"
+  # Price asset: "0" = native ALGO (default, no ASA opt-in). Set to the USDCa testnet ASA id to price in USDC.
+  price-asset-id: "0"

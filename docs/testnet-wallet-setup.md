@@ -1,39 +1,36 @@
 # Algorand Testnet Wallet Setup (for the x402 demo)
 
-You do this once. Claude never sees or commits your mnemonic.
+You do this once. **No app store, no wallet app needed.** Claude never sees or commits your mnemonic.
 
 ## What we need at the end
 
-- **One funded testnet account** (the "agent" that pays): holds test ALGO + test USDCa.
-- **A `payTo` address** that has opted into the USDC ASA (can be the *same* account paying itself, which is the simplest for a demo).
-- The paying account's **25-word mnemonic**, placed in `ONRAMP_PAYER_MNEMONIC` (env var or an untracked file) — never committed.
+- **One funded testnet account** (the "agent" that pays), holding **test ALGO**.
+- Its **25-word mnemonic** in `ONRAMP_PAYER_MNEMONIC` (a git-ignored `.env`), never committed.
+
+That's it. The demo prices calls in **native ALGO** (`asset:"0"`), so there is **no USDC opt-in and no USDC faucet** — just test ALGO. (We can switch the price asset to USDCa later via config if you get test USDC easily; the "pay-per-call on Algorand" story holds either way.)
 
 ## Steps
 
-1. **Create a testnet account.**
-   - Easiest: install **Pera Wallet** (mobile/desktop), create a new account, and switch the network to **TestNet** (Settings → Node Settings → TestNet).
-   - Save the 25-word mnemonic somewhere private.
+1. **Generate a testnet account (you run this — the mnemonic stays on your machine):**
+   ```bash
+   mvn -q compile exec:java -Dexec.mainClass=org.botstandards.onramp.tools.GenerateTestnetAccount
+   ```
+   It prints an **Address** and a **25-word Mnemonic**.
+   *(Alternative if you prefer a UI, no app store: the web wallet **https://lute.app** or the **Kibisis** browser extension — create a TestNet account and reveal its mnemonic.)*
 
 2. **Fund it with test ALGO.**
-   - Open the official dispenser: **https://bank.testnet.algorand.network/** (or **https://dispenser.testnet.aws.algodev.network/**).
-   - Paste your account address, request ALGO. A few ALGO is plenty (covers transaction fees).
+   Open **https://bank.testnet.algorand.network/**, paste the Address from step 1, request ALGO. A few ALGO is plenty (covers fees + demo payments).
 
-3. **Opt into USDC (testnet ASA) and get some.**
-   - Testnet USDC is an ASA. In Pera: **Add asset → search "USDC" → opt in** (this sends a 0-amount opt-in txn; needs a little ALGO, which you now have).
-   - Get test USDC from a testnet USDC faucet (e.g. the **Circle testnet faucet** for Algorand, or a community dispenser). Even ~1–2 USDC is enough — each screening call costs ~0.05.
-   - *Note:* the exact USDC testnet **ASA ID** I will pin during the spike against `facilitator.goplausible.xyz/docs` and put it in `application.yaml`. You don't need to look it up — just opt into "USDC" in Pera on TestNet.
+3. **Give me the mnemonic — safely.** Create `apix-x402-onramp/.env` (already git-ignored):
+   ```
+   ONRAMP_PAYER_MNEMONIC="word1 word2 ... word25"
+   ONRAMP_PAYTO_ADDRESS="<the address from step 1>"
+   ```
+   `.env`, `*.mnemonic`, and `secrets/` are git-ignored. I read the env var at runtime; I never print or commit it. (`payTo` can be the same address — it pays itself in the demo.)
 
-4. **Hand me the mnemonic — safely.**
-   - Put it in a file the repo ignores, e.g. create `apix-x402-onramp/.env` with:
-     ```
-     ONRAMP_PAYER_MNEMONIC="word1 word2 ... word25"
-     ONRAMP_PAYTO_ADDRESS="<your account address>"
-     ```
-   - `.env`, `*.mnemonic`, and `secrets/` are already git-ignored. I read the env var at runtime; I never print it or commit it.
+## Why only ALGO?
 
-## Why both ALGO and USDC?
+- **ALGO** pays both the tiny network fees *and* the per-call price in the demo (native-asset x402).
+- No ASA opt-in is required for native ALGO — that's the whole reason we avoid USDC for the demo.
 
-- **ALGO** pays the tiny network transaction fees.
-- **USDC (USDCa)** is what the agent actually pays the service per call, via x402.
-
-That's it. Once `ONRAMP_PAYER_MNEMONIC` is set and the account is funded, the spike (Task 2) and the live demo (Task 8) can run for real. Everything else I build in parallel against stubs.
+Once `ONRAMP_PAYER_MNEMONIC` is set and the account is funded, the spike (Task 2) and the live demo (Task 8) can run for real. Everything else is built in parallel against stubs.
