@@ -18,6 +18,9 @@ public interface OnrampConfig {
     /** Price asset ASA id ("0" = native ALGO, but the facilitator requires an ASA — use USDC). */
     String priceAssetId();
 
+    /** Shared secret the gateway injects to internal origins; they reject requests without it. */
+    String internalForwardSecret();
+
     List<Upstream> upstreams();
 
     /** One wrapped API: a public paywalled route that reverse-proxies to a private origin. */

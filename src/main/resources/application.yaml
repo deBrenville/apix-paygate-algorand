@@ -11,7 +11,17 @@ onramp:
   facilitator-url: "https://facilitator.goplausible.xyz"
   # Price asset: testnet USDC ASA (native ALGO is rejected by the facilitator — spike result).
   price-asset-id: "10458941"
+  # Shared secret the gateway injects to internal origins (they reject requests without it).
+  internal-forward-secret: "internal-s3cr3t"
   upstreams:
+    # Upstream A — neutral basic sanctions ledger (all registers, unfiltered).
+    - route: "sanctions-basic"
+      upstream-url: "http://localhost:8080/internal/ledger/screen"
+      forward-secret: "internal-s3cr3t"
+      pay-to: "${ONRAMP_A_PAYTO_ADDRESS:}"
+      price-micros: 10000
+      capability: "compliance.sanctions.screen"
+      description: "Neutral global sanctions ledger — all registers, match-proof"
     # Free echo upstream — used by ReverseProxyResourceTest (no payment).
     - route: "echo"
       upstream-url: "http://localhost:8089/echo"
