@@ -31,8 +31,10 @@ class X402SpikeTest {
 
     private static final String FACILITATOR = "https://facilitator.goplausible.xyz";
     private static final String ALGOD = "https://testnet-api.algonode.cloud";
-    private static final long USDC_TESTNET_ASSET = 10_458_941L;
-    private static final long AMOUNT = 10_000L; // 0.01 USDC (6 decimals)
+    private static final long AMOUNT = 10_000L; // 0.01 units (6 decimals)
+
+    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "onramp.price-asset-id")
+    String priceAssetId;
 
     @ConfigProperty(name = "onramp.payer-mnemonic")
     Optional<String> payerMnemonic;
@@ -45,6 +47,8 @@ class X402SpikeTest {
 
     @Test
     void nativeAlgoPaymentIsVerifiedAndSettled() throws Exception {
+        Assumptions.assumeTrue(Boolean.getBoolean("x402.live"),
+                "live on-chain settlement — run with -Dx402.live=true");
         Assumptions.assumeTrue(
                 payerMnemonic.isPresent() && payToAddress.isPresent(),
                 "Set ONRAMP_PAYER_MNEMONIC + ONRAMP_PAYTO_ADDRESS in .env to run the spike");
@@ -58,11 +62,10 @@ class X402SpikeTest {
             fail("Could not fetch suggested params from algod (network?)");
         }
 
+        long asset = Long.parseLong(priceAssetId);
         X402AvmClient client = new X402AvmClient();
-        Map<String, Object> payload =
-                client.buildPayload(payer, payTo, AMOUNT, USDC_TESTNET_ASSET, params);
-        Map<String, Object> requirements =
-                client.paymentRequirements(payTo, AMOUNT, Long.toString(USDC_TESTNET_ASSET));
+        Map<String, Object> payload = client.buildPayload(payer, payTo, AMOUNT, asset, params);
+        Map<String, Object> requirements = client.paymentRequirements(payTo, AMOUNT, Long.toString(asset));
         Map<String, Object> body = client.facilitatorRequest(payload, requirements);
 
         // GATE: the facilitator accepts a payment our pure-Java client produced.

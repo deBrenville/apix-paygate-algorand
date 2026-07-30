@@ -9,8 +9,9 @@ onramp:
   # Algorand network + facilitator (pinned during the x402 spike, Task 2)
   network: "algorand-testnet"
   facilitator-url: "https://facilitator.goplausible.xyz"
-  # Price asset: testnet USDC ASA (native ALGO is rejected by the facilitator — spike result).
-  price-asset-id: "10458941"
+  # Price asset. Faucet-free demo: dUSD (ASA 768322928), minted by the agent. Mainnet flips to
+  # USDC (31566704) via config; testnet USDC is 10458941 if a faucet becomes available.
+  price-asset-id: "768322928"
   # Shared secret the gateway injects to internal origins (they reject requests without it).
   internal-forward-secret: "internal-s3cr3t"
   upstreams:
@@ -18,7 +19,8 @@ onramp:
     - route: "sanctions-basic"
       upstream-url: "http://localhost:8080/internal/ledger/screen"
       forward-secret: "internal-s3cr3t"
-      pay-to: "${ONRAMP_A_PAYTO_ADDRESS:}"
+      # A's receiver. Faucet-free demo default = the agent's (opted-in) address.
+      pay-to: "${ONRAMP_A_PAYTO_ADDRESS:Q2XTPIACCO27OZ7ROPPT5SU5HLAZCELVGEGGSGRIMQBP5TBXHOHZWN6GOY}"
       price-micros: 10000
       requires-attestation: true
       capability: "compliance.sanctions.screen"
@@ -27,7 +29,8 @@ onramp:
     - route: "humanity"
       upstream-url: "http://localhost:8080/internal/humanity/screen"
       forward-secret: "internal-s3cr3t"
-      pay-to: "${ONRAMP_B_PAYTO_ADDRESS:}"
+      # B's receiver = B's own (opted-in) address.
+      pay-to: "${ONRAMP_B_PAYTO_ADDRESS:GVRXJLXF6OJLRIV46CRIXLG3DX3RJYBBAGRKNNYLHWOAHG57GKWHDH6ZAE}"
       price-micros: 30000
       requires-attestation: true
       capability: "compliance.sanctions.screen.humanity"
