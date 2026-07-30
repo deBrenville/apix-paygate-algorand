@@ -147,3 +147,21 @@ Mainnet; full sanctions-list import + scheduled refresh; DB persistence; the ful
 4. **Cascade beat (50s):** reveal that the humanity service itself *discovered and paid* the neutral basic ledger over x402 — a second on-chain hop — and kept a margin (charges 0.03, pays 0.01). Service chaining + value-add pricing, machine to machine.
 5. **Values beat (45s):** the basic ledger neutrally reports an OFAC match (ledger, no judge); the humanity layer downgrades it to `MATCH_EXEMPT` (ISGH case), passing through the provenance as evidence — the value-add made visible.
 6. **Close (20s):** APIX brings discovery; x402/Algorand brings payment; the Onramp fuses them and composes services into paid, discoverable chains — and this runs as a real product, not a mock.
+
+## 12. Economics — how each layer earns
+
+Layered value, each priced in its own natural unit:
+
+```
+Netz-Gas (ALGO, ~0.001/txn)  <  A: ledger price  <  B: humanity margin  <  APIX: platform fee
+```
+
+**No separate ALGO fee (decided — counterproductive).** Reasons: (1) it forces the agent to hold/spend *two* assets per call, breaking the single-stablecoin simplicity; (2) the amounts are so small that collecting a micro-ALGO fee costs about as much ALGO in gas as it yields; (3) in the simple (no-fee-abstraction) model each signer pays its own gas directly, so the wrapper is not out-of-pocket for gas and has nothing to recover. **Gas stays a network cost, not a business line. The wrapper earns in USDC, not ALGO.**
+
+**How APIX (the wrapper) earns:**
+- **Primary — per-call platform fee in USDC, taken inline at settlement.** The Onramp is the payment-enforcement point, so it takes its cut in the same settlement. Cleanest on Algorand as an **atomic transfer group** that splits the agent's payment into provider-share + APIX-share in *one* settlement (native atomic transfers — no extra hop, single currency). **Zero upfront cost to list → maximises adoption; APIX earns when providers earn.** Matches the BSF EBIT model (small transaction fee, ~0.1% precedent). Structure: a small **percentage with a floor** (e.g. 1%, min 0.001 USDC).
+- **Optional/complementary — subscription or registration tiers.** A flat recurring "rental" for providers who prefer predictable cost, or premium features (higher rate limits, priority, fee-abstraction sponsorship). BSF registration-tier model. Offered as a *choice*, never a mandatory entry gate (a gate would fight the "wrap any API in one config step" thesis).
+
+**Fee abstraction (premium value-add, roadmap).** GoPlausible supports a fee-payer txn; the wrapper can *sponsor the ALGO gas* so agents pay **only USDC** (no ALGO at all). This turns the gas complexity into a selling point, priced into the USDC platform fee. Not in the 48h demo (which uses the simple single-txn model where the signer pays its own gas).
+
+**Demo scope (48h):** fees are **represented transparently** — the BSM advertises the price breakdown and the result surfaces it (A price + B margin + APIX fee). Actually routing the APIX fee on-chain (the atomic-split) is a **stretch**, not core.
