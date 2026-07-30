@@ -31,7 +31,10 @@ public interface OnrampConfig {
         /** Shared secret injected as X-Onramp-Forward so the origin only trusts the gateway. */
         String forwardSecret();
 
-        /** Price in the asset's minor units (e.g. USDC has 6 decimals → 10000 = 0.01 USDC). */
+        /** Algorand address that receives payment for this route. Required for paid routes. */
+        Optional<String> payTo();
+
+        /** Price in the asset's minor units (e.g. USDC has 6 decimals → 10000 = 0.01 USDC). 0 = free route (no payment). */
         @WithDefault("0")
         long priceMicros();
 

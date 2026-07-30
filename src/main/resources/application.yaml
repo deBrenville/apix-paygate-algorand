@@ -12,10 +12,23 @@ onramp:
   # Price asset: testnet USDC ASA (native ALGO is rejected by the facilitator — spike result).
   price-asset-id: "10458941"
   upstreams:
-    # Echo test upstream — wired to a WireMock stub in ReverseProxyResourceTest.
+    # Free echo upstream — used by ReverseProxyResourceTest (no payment).
     - route: "echo"
       upstream-url: "http://localhost:8089/echo"
       forward-secret: "s3cr3t"
-      price-micros: 10000
+      price-micros: 0
       capability: "demo.echo"
-      description: "Echo test upstream"
+      description: "Echo test upstream (free)"
+    # Paid echo upstream — used by X402GatewayFilterTest (facilitator stubbed).
+    - route: "paid-echo"
+      upstream-url: "http://localhost:8089/echo"
+      forward-secret: "s3cr3t"
+      pay-to: "Q2XTPIACCO27OZ7ROPPT5SU5HLAZCELVGEGGSGRIMQBP5TBXHOHZWN6GOY"
+      price-micros: 10000
+      capability: "demo.paid-echo"
+      description: "Paid echo test upstream"
+
+# Test profile: point the facilitator at the in-test WireMock stub.
+"%test":
+  onramp:
+    facilitator-url: "http://localhost:8089"
