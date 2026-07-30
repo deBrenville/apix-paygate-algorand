@@ -332,17 +332,25 @@ sequenceDiagram
   <section>
     <p class="eyebrow">Die Werte-Schicht</p>
     <h2>Ledger, kein blindes Urteil</h2>
-    <p class="section-note">Der Sanctions-Service bewertet nicht neutral: eine Listung wird mit Herkunft <b>im Ergebnis</b> zurückgegeben, nicht automatisch geblockt. Der Dienst ist dabei <b>zustandslos</b> — Treffer werden berechnet und zurückgegeben, nie gespeichert; einziger Zustand sind die geladenen Sanktions-Einträge.</p>
+    <p class="section-note">Zwei Schichten. Der <b>Basis-Ledger</b> ist neutral und aggregiert <b>pro Register</b>: er nennt <i>jeden</i> Treffer einzeln (welche Liste). Die <b>Humanity-Schicht</b> liest diese Register-Herkunft und filtert nur den Sonderfall. Beide zustandslos — nichts wird gespeichert, die Provenienz steckt im Ergebnis.</p>
     <div class="diagram">
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','tertiaryColor':'#33261a'}}}%%
-flowchart TD
-  M["Abgleich gegen<br/>Sanktionslisten"]
-  M -->|"UN / EU / SECO"| BLOCK["MATCH<br/>blockiert"]
-  M -->|"nur OFAC + menschheitsdienend<br/>(z. B. ISGH-Fall)"| EX["MATCH_EXEMPT<br/>Provenienz im Ergebnis"]
-  M -->|"kein Treffer"| CL["CLEAR"]
+flowchart TB
+  subgraph LED["Basis-Ledger (neutral) — ALLE Treffer, aggregiert pro Register"]
+    direction TB
+    I1["Anfrage: „Weltweiter Bösewicht“"] --> M1["Treffer: UN · EU · SECO · OFAC"]
+    I2["Anfrage: „ISGH-Ankläger“"] --> M2["Treffer: nur OFAC"]
+  end
+  subgraph HUM["Humanity-Schicht — bewertet die Register-Herkunft"]
+    Q{"Bleibt ein Treffer<br/>außerhalb OFAC?"}
+  end
+  M1 --> Q
+  M2 --> Q
+  Q -->|"ja → mehrfach gelistet, echter Fall"| RM["MATCH<br/>bleibt geblockt"]
+  Q -->|"nur OFAC + menschheitsdienend"| RE["MATCH_EXEMPT<br/>OFAC-Treffer als Beleg mitgeliefert,<br/>Entscheidung: NONE"]
 </pre>
-      <p class="diagram-cap">Menschheitsdienende Organisationen werden nicht auto-geblockt, auch wenn eine einzelne Jurisdiktion sie listet.</p>
+      <p class="diagram-cap">Der neutrale Ledger nennt jeden Registertreffer einzeln — darum ist die Listenidentifikation entscheidend. Erst sie lässt die Humanity-Schicht „überall gelistet = echt“ von „nur OFAC = politisch umstritten“ unterscheiden. Der OFAC-Beleg bleibt im Ergebnis, die Wertung wird auf NONE gesetzt.</p>
     </div>
   </section>
 
