@@ -201,30 +201,29 @@
   <section>
     <p class="eyebrow">Die Struktur</p>
     <h2>Wie die Bausteine zusammenhängen</h2>
-    <p class="section-note">Das Onramp-Gateway ist das Produkt. Der Sanctions-Service ist nur die erste Instanz dahinter. Der Facilitator und die Kette liegen außerhalb.</p>
+    <p class="section-note">Ein Gateway, zwei bezahlte Hops: der Agent zahlt <b>B</b> (die BSF-Mehrwert-Schicht), und <b>B</b> entdeckt und zahlt seinerseits <b>A</b> (den neutralen Ledger). B behält die Marge. Genau das demonstriert Service-Verkettung + Mehrwert-Bepreisung.</p>
     <div class="diagram">
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','secondaryColor':'#33261a','tertiaryColor':'#101f20','clusterBkg':'#0d1e1f','clusterBorder':'#2f4a47','edgeLabelBackground':'#0b1a1c'}}}%%
 flowchart LR
-  A["🤖 Autonomer<br/>Agent"]
-  subgraph ONR["APIX x402 Onramp — Gateway (das Produkt)"]
-    direction TB
-    B["BSM-Manifest<br/>Discovery"]
-    F["x402-Filter<br/>402 · verify · settle"]
-    P["Reverse-Proxy<br/>+ Forward-Secret"]
+  AG["🤖 Agent"]
+  subgraph ONR["APIX x402 Onramp — ein Gateway für beide Dienste"]
+    F["x402-Filter · Discovery ·<br/>Reverse-Proxy"]
   end
-  FAC["GoPlausible<br/>Facilitator"]
-  CHAIN[("Algorand<br/>Testnet")]
-  subgraph UP["Upstream — privat, nur übers Gateway erreichbar"]
-    S["Sanctions-Service<br/>echte SanctionsMatcher-Library"]
+  subgraph SB["Upstream B — BSF Humanity (Mehrwert)"]
+    HB["pro-humanity-Filter<br/>+ x402-Client"]
   end
-  A -->|"discover"| B
-  A -->|"Aufruf + X-PAYMENT"| F
-  F -->|"verify / settle"| FAC
-  FAC --> CHAIN
-  F --> P
-  P -->|"nur mit Secret"| S
-  S -->|"Ergebnis"| A
+  subgraph SA["Upstream A — Neutraler Ledger"]
+    LA["SanctionsMatcher<br/>alle Register, ungefiltert"]
+  end
+  FAC["GoPlausible<br/>Facilitator + Algorand"]
+  AG -->|"① zahlt 0,03 USDC"| F
+  F --> HB
+  HB -->|"② entdeckt + zahlt 0,01 USDC"| F
+  F --> LA
+  LA -->|"Match-Proof (neutral)"| HB
+  HB -->|"exempt-gefiltert"| AG
+  F -.->|"verify / settle · beide Hops"| FAC
 </pre>
       <p class="diagram-cap">Zahlung + Auffindbarkeit in einem Gateway. Der Anbieter schreibt keine Bezahl-Logik.</p>
     </div>
@@ -233,28 +232,28 @@ flowchart LR
   <section>
     <p class="eyebrow">Der Ablauf</p>
     <h2>Ein Aufruf, Schritt für Schritt</h2>
-    <p class="section-note">Genau diese Sequenz zeigt das Demo-Video — der Agent macht alles selbst.</p>
+    <p class="section-note">Zwei x402-Hops hintereinander — der Agent zahlt B, B zahlt A, beides maschinen-nativ. Genau diese Sequenz zeigt das Demo-Video.</p>
     <div class="diagram">
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','actorBkg':'#12312e','actorBorder':'#35d7c3','actorTextColor':'#e6f3f0','signalColor':'#8fd8cd','signalTextColor':'#cfe9e4','noteBkgColor':'#33261a','noteTextColor':'#f0e4cf','noteBorderColor':'#a9711b'}}}%%
 sequenceDiagram
   autonumber
   participant Ag as 🤖 Agent
-  participant On as Onramp
+  participant B as Humanity B
+  participant A as Ledger A
   participant Fa as Facilitator
-  participant Up as Sanctions
-  Ag->>On: BSM lesen (Discovery)
-  On-->>Ag: Preis + x402-Bedingungen
-  Ag->>On: Aufruf ohne Zahlung
-  On-->>Ag: 402 Payment Required
-  Note over Ag: signiert ASA-Zahlung (Algorand)
-  Ag->>On: Aufruf + X-PAYMENT
-  On->>Fa: verify + settle
-  Fa-->>On: ok — on-chain txId
-  On->>Up: weiterleiten (Forward-Secret)
-  Up-->>On: CLEAR / MATCH / MATCH_EXEMPT
-  On-->>Ag: Ergebnis
-  Note over Ag: entscheidet (proceed / block)
+  Ag->>B: BSM lesen · Aufruf
+  B-->>Ag: 402 (0,03 USDC)
+  Ag->>Fa: zahle 0,03 (Agent→B)
+  Fa-->>B: settle ok · txId
+  B->>A: BSM lesen · Aufruf
+  A-->>B: 402 (0,01 USDC)
+  B->>Fa: zahle 0,01 (B→A)
+  Fa-->>A: settle ok · txId
+  A-->>B: Match-Proof (neutral, alle Register)
+  Note over B: pro-humanity-Filter
+  B-->>Ag: Ergebnis (exempt-gefiltert)
+  Note over Ag: entscheidet · B behält 0,02 Marge
 </pre>
       <p class="diagram-cap">Kein Konto, keine E-Mail, kein OAuth, kein CAPTCHA — reine Maschinen-Interaktion.</p>
     </div>
@@ -312,6 +311,49 @@ flowchart TD
         </ul>
       </div>
     </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Einrichtung · einmalig</p>
+    <h2>Zwei Konten fürs Testnet betanken</h2>
+    <p class="section-note">Die Kaskade hat zwei Zahler: den <b>Agenten</b> (zahlt B) und <b>B</b> selbst (zahlt A). Beide Konten durchlaufen einmalig denselben dreistufigen Funding-Prozess.</p>
+    <div class="diagram">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','tertiaryColor':'#33261a','clusterBkg':'#0d1e1f','clusterBorder':'#2f4a47'}}}%%
+flowchart TD
+  D["① ALGO-Dispenser<br/>bank.testnet.algorand.network"]
+  C["③ Circle-Faucet<br/>faucet.circle.com"]
+  subgraph AGENT["Agent-Konto"]
+    A1["ALGO"] --> A2["② Opt-in USDC<br/>ASA 10458941"] --> A3["Test-USDC"]
+  end
+  subgraph BK["B-Konto (Humanity)"]
+    B1["ALGO"] --> B2["② Opt-in USDC<br/>ASA 10458941"] --> B3["Test-USDC"]
+  end
+  D -->|"Test-ALGO"| A1
+  D -->|"Test-ALGO"| B1
+  C -->|"Test-USDC"| A3
+  C -->|"Test-USDC"| B3
+</pre>
+      <p class="diagram-cap">Reihenfolge je Konto: ALGO (Gebühren + Mindest-Balance) → Opt-in in die USDC-ASA 10458941 → dann kann der Circle-Faucet USDC schicken.</p>
+    </div>
+    <div class="cards" style="margin-top:16px">
+      <div class="card">
+        <span class="tag">ALGO</span>
+        <h3>① Treibstoff</h3>
+        <p>Aus dem Testnet-Dispenser. Zahlt Gebühren und die Mindest-Balance, die ein Opt-in verlangt.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Opt-in 10458941</span>
+        <h3>② Empfangsbereit</h3>
+        <p>Ein Konto muss die USDC-ASA <b>10458941</b> erst opt-in-nen, bevor es USDC empfangen kann. <span class="plain">Automatisiere ich im Code.</span></p>
+      </div>
+      <div class="card value">
+        <span class="tag">USDC</span>
+        <h3>③ Zahlungsmittel</h3>
+        <p>Circle-Faucet (Algorand Testnet) schickt Test-USDC an <b>beide</b> Konten. ~1–2 pro Konto reichen.</p>
+      </div>
+    </div>
+    <p class="section-note" style="margin-top:18px">Warum die ID <b>10458941</b>? Jede ASA hat eine eindeutige Nummer; das ist Circles <b>USDC auf dem Algorand-Testnet</b> (Mainnet wäre 31566704). In Lora unter Asset 10458941 als „USDC" verifizierbar.</p>
   </section>
 
   <section>
