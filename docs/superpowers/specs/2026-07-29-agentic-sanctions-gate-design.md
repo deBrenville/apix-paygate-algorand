@@ -29,16 +29,37 @@ For the paywall to protect revenue, the origin must be reachable **only** by the
 
 **Second trust fact (deck):** the Onramp sees request/response in cle­artext (for sanctions: the screened subject). Acceptable for a **neutral APIX/BSF operator** (the "Kontor" refining-intermediary model), but it is a stated trust assumption.
 
-## 3. Values constraint — pro-humanity sanctions policy (BINDING, instance-level)
+## 3. Micro-service cascade — neutral ledger + separate humanity layer
 
-Per BSF standing decision (2026-07-27, `bsf-sanctions-policy-pro-humanity`): BSF is **not neutral** on sanctions lists. Organisations serving humanity as a whole (international courts, humanitarian/multilateral institutions) do **not** fall under BSF-accepted sanctions even if a single jurisdiction (e.g. the US via OFAC) lists them. Precedent: EU Blocking Regulation 2271/96.
+The screening is split into **two chained services**, both wrapped by the Onramp. This cleanly isolates the BSF values decision and is the demo's headline (service chaining + value-add pricing over x402).
 
-Applies to the **sanctions instance**, not the generic Onramp:
-- OFAC is included as a *source*, every designation returned **provenance-tagged** (which jurisdiction listed the subject), never an automatic block;
-- a **pro-humanity exemption** returns `MATCH_EXEMPT` (with reason + full provenance) instead of `REFUSED` for a humanity-serving subject;
+**Service A — Basic Global Sanctions Ledger (neutral, stateless).** Loads *all* lists (UN/EU/SECO/OFAC) **unfiltered** and answers with the ledger only — no value judgment. Returning OFAC data here is **not** a values decision: it neutrally relays a public list ("ledger, not judge"). Response = the match-proof shape in §3a. Price e.g. 0.01 USDC.
+
+**Service B — BSF Humanity Layer (value-add, stateless).** Acts as an x402 *client*: discovers Service A via its BSM, pays it, receives the ledger result, then applies the **pro-humanity filter** and returns the enriched result. Price e.g. 0.03 USDC (0.01 cost to A + 0.02 margin for the exemption intelligence — shown live in the demo).
+
+Per BSF standing decision (2026-07-27, `bsf-sanctions-policy-pro-humanity`): BSF is **not neutral** on sanctions lists. Organisations serving humanity as a whole (international courts, humanitarian/multilateral institutions) do **not** fall under BSF-accepted sanctions even if a single jurisdiction (e.g. the US via OFAC) lists them. Precedent: EU Blocking Regulation 2271/96. Service B operationalises this:
+- if a match's **only** register is OFAC **and** the subject is on the curated humanity-exemption list → downgrade that match to exempt;
+- if, after that, **no** non-exempt match remains → outcome `MATCH_EXEMPT` (with reason + the underlying provenance passed through from A); a remaining UN/EU/SECO match stays `MATCH`;
 - worked example driving the demo: the ICC/ISGH-prosecutor case (US-sanctioned; not carried by EU, UN-SC, or Switzerland).
 
-Full operationalisation (org-category taxonomy, override process) is a deferred BSF task, **out of scope**; this demonstrates the *principle* with one curated exemption, documented as such.
+Full operationalisation (org-category taxonomy, override process) is a deferred BSF task, **out of scope**; this demonstrates the *principle* with one curated exemption.
+
+### 3a. Stateless + match-proof (both services)
+
+Both services are **stateless**: a match is computed and returned, **never persisted or logged**. The only state is the loaded sanctions-list entries (input data). Rationale (see legal analysis): the record-keeping duty (OFAC 31 CFR 501.601 · EU AMLD Art. 40 · FATF R.11, all ~5y) binds the *obligated caller*, not a stateless lookup tool; statelessness also avoids becoming a GDPR controller of screened subjects' PII.
+
+The response returns the **source data as match-proof** so the caller can keep its own record — framed as **evidence, not a verdict** (returning public list data + a similarity score; the caller makes the final determination):
+
+```json
+{ "outcome": "CLEAR | MATCH | MATCH_EXEMPT",
+  "query": { "name": "...", "country": "..." },
+  "matches": [ { "register": "UN|EU|SECO|OFAC", "entryId": "...", "strength": "STRONG|WEAK",
+                 "score": 0.97, "sourceRecord": { "primaryName": "...", "aliases": [], "country": "...", "listRef": "..." } } ],
+  "exemption": null,
+  "screenedAt": "<timestamp>", "listSnapshot": "<version>" }
+```
+
+DSGVO note: the source records are **already published by the authorities for exactly this purpose**; company records are largely outside GDPR; person records are covered but justified by Art. 6(1)(c)/(f) + public-source + purpose-consistency. The real risk is a **false positive**, mitigated by evidence-framing + the score (never asserting the query subject *is* the listed person).
 
 ## 4. Architecture (all Quarkus / Java — single technology)
 
@@ -53,25 +74,28 @@ Full operationalisation (org-category taxonomy, override process) is a deferred 
 
 3. **BSM publisher** — per upstream, generates + serves the APIX Bot Service Manifest (`/.well-known/…`) advertising `capability`, price, x402 terms, endpoint, and I/O schema. This is the discovery layer = the APIX-unique differentiator.
 
-4. **Flagship upstream: Agentic Sanctions Gate** — a thin origin that calls the **real `SanctionsMatcher` from `apix-verification`** over small curated list fixtures (UN/EU/SECO samples already in the tree + a small OFAC fixture incl. the exemption case). Returns `CLEAR | MATCH | MATCH_EXEMPT` with provenance. No DB / import pipeline for the demo.
+4. **Upstream A — Basic Global Sanctions Ledger** — a thin, stateless origin that calls the **real `SanctionsMatcher` from `apix-verification`** over curated list fixtures (UN/EU/SECO samples already in the tree + an OFAC fixture incl. the ISGH case). Returns the §3a match-proof (`CLEAR | MATCH`, no exemption logic). Neutral. Production path: swap fixtures for the full list import (registry already has the parsers).
 
-5. **Second upstream (genericity proof)** — a throwaway origin (e.g. a "premium summarize/echo" endpoint), wrapped by adding one config entry, demoed live to show the Onramp generalises.
+5. **Upstream B — BSF Humanity Layer** — a stateless origin that is *itself* an x402 **client**: it discovers Upstream A via its BSM, pays A over x402 (settling on-chain), receives A's ledger result, applies the pro-humanity filter (§3), and returns the enriched result (`CLEAR | MATCH | MATCH_EXEMPT`) with A's provenance passed through. Uses `X402AvmClient` (proven in the spike) with **B's own funded testnet account**.
 
-6. **Agent demo client (Java, Algorand Java SDK `algosdk`)** — reads the BSM → calls the route (unpaid) → gets `402` → signs a testnet USDCa payment → retries with `X-PAYMENT` → receives the outcome → acts. This run IS the demo video.
+6. **Agent demo client (Java, `algosdk`)** — discovers **B** via BSM → calls unpaid → `402` → signs a testnet USDC payment → retries with `X-PAYMENT` → receives the enriched outcome → acts. This run IS the demo video. The margin (B charges 0.03, pays A 0.01) is surfaced in the output.
 
-### Data flow
+### Data flow (the cascade — two x402 hops over one Onramp)
 
 ```
-Agent → GET BSM (discover route + price + x402 terms)
-      → POST <route> {payload}                      (no payment)
-      ← 402 + payment-requirements (testnet USDCa, facilitator)
-Agent → sign testnet USDCa txn (algosdk)
-      → POST <route> {payload} + X-PAYMENT
-Onramp→ facilitator /verify + /settle → reverse-proxy to upstream (+ forward secret)
-Upstream (sanctions instance) → SanctionsMatcher.screen()
-      ← 200 { outcome, provenance[], matchDetail }
-Agent → decision
+Agent → GET BSM(B) discover
+      → POST /gw/humanity {name,country}                       (no payment)
+      ← 402  (0.03 USDC, facilitator)
+Agent → sign USDC axfer → POST /gw/humanity + X-PAYMENT
+Onramp→ verify+settle (agent→B) → proxy to Upstream B
+  B   → GET BSM(A) discover → POST /gw/sanctions (no payment) ← 402 (0.01 USDC)
+      → sign USDC axfer (B's account) → POST /gw/sanctions + X-PAYMENT
+  Onramp→ verify+settle (B→A) → proxy to Upstream A
+    A → SanctionsMatcher.match() per register → §3a match-proof
+  B   → apply pro-humanity filter → enriched match-proof
+Onramp← 200 enriched result → Agent → decision
 ```
+
 
 ## 5. Network decision: Testnet
 
@@ -104,7 +128,7 @@ Testnet USDCa — no real funds, fast; this jury track judges submitted material
 
 ## 9. What only Carsten can provide (Claude's hard limits)
 
-- Algorand **testnet wallet + testnet USDCa** from a faucet (Claude never touches keys/wallets — security rule).
+- **Two** funded Algorand **testnet accounts**: the agent (pays B) and Upstream B's own account (pays A). Both need the demo asset (USDC or a self-minted ASA) — fundable from one mint. Claude never touches keys/wallets (security rule).
 - Recording the **video**; the **X profile handle**; **team details**; **submitting the form** (irreversible action).
 
 ## 10. Out of scope (YAGNI)
@@ -114,8 +138,8 @@ Mainnet; full sanctions-list import + scheduled refresh; DB persistence; the ful
 ## 11. Demo narrative (the video, 3–5 min)
 
 1. **Problem (15s):** an autonomous agent needs a paid API — no human to sign up, enter a card, click a CAPTCHA.
-2. **Discover (30s):** agent reads the APIX BSM, learns the route + price + Algorand payment terms — machine-native, no docs.
-3. **Pay & screen (60s):** call → `402` → agent signs testnet USDCa → retry → sanctions result. The core x402 flow.
-4. **Values beat (45s):** OFAC match → `MATCH_EXEMPT` under BSF pro-humanity policy, provenance recorded — "ledger, not blind judge."
-5. **Multiplier beat (45s):** wrap a *second*, unrelated API in ~30 seconds of config → instantly discoverable + payable. This is the point: any provider, one step, onto Algorand + into the agent index.
-6. **Close (15s):** APIX brings discovery; x402/Algorand brings payment; the Onramp fuses them.
+2. **Discover (30s):** agent reads the APIX BSM for the humanity service, learns route + price + Algorand terms — machine-native, no docs.
+3. **Pay & screen (50s):** call → `402` → agent signs testnet USDC → retry → result. The core x402 flow.
+4. **Cascade beat (50s):** reveal that the humanity service itself *discovered and paid* the neutral basic ledger over x402 — a second on-chain hop — and kept a margin (charges 0.03, pays 0.01). Service chaining + value-add pricing, machine to machine.
+5. **Values beat (45s):** the basic ledger neutrally reports an OFAC match (ledger, no judge); the humanity layer downgrades it to `MATCH_EXEMPT` (ISGH case), passing through the provenance as evidence — the value-add made visible.
+6. **Close (20s):** APIX brings discovery; x402/Algorand brings payment; the Onramp fuses them and composes services into paid, discoverable chains — and this runs as a real product, not a mock.
