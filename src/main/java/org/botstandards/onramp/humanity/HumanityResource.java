@@ -1,5 +1,6 @@
 package org.botstandards.onramp.humanity;
 
+import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.HeaderParam;
@@ -34,6 +35,7 @@ public class HumanityResource {
 
     @POST
     @Path("/screen")
+    @Blocking
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response screen(@HeaderParam("X-Onramp-Forward") String forwardSecret, ScreenRequest req) {

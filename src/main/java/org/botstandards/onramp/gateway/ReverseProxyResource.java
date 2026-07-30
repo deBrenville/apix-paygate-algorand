@@ -1,5 +1,6 @@
 package org.botstandards.onramp.gateway;
 
+import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -31,6 +32,7 @@ public class ReverseProxyResource {
 
     @POST
     @Path("/{route}")
+    @Blocking
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response proxy(@PathParam("route") String route, String body) {

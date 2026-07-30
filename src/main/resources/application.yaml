@@ -59,7 +59,11 @@ onramp:
       capability: "demo.attested-echo"
       description: "Attestation-gated echo test upstream"
 
-# Test profile: point the facilitator at the in-test WireMock stub.
+# Test profile: run the app on 8080 (so internal upstream URLs + self-base-url match) and
+# point the facilitator at the in-test WireMock stub (the live cascade IT overrides it).
 "%test":
+  quarkus:
+    http:
+      test-port: 8080
   onramp:
     facilitator-url: "http://localhost:8089"
