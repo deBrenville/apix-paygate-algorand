@@ -199,6 +199,76 @@
   </section>
 
   <section>
+    <p class="eyebrow">Münzarten</p>
+    <h2>Zwei Rollen: Treibstoff und Zahlungsmittel</h2>
+    <p class="section-note">Es hilft, zwei Dinge sauber zu trennen: den <b>nativen Coin</b> (bezahlt das Netz) und die <b>Assets/Token</b> (bezahlen den Dienst). Beides sind echte, handelbare Werte — auf dem Testnet nur wertloses Spielgeld.</p>
+    <div class="diagram">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','tertiaryColor':'#33261a','clusterBkg':'#0d1e1f','clusterBorder':'#2f4a47'}}}%%
+flowchart TB
+  subgraph GAS["① Nativer Coin — Netz-Treibstoff"]
+    ALGO["ALGO (Algorand)<br/>• Gas: ~0,001 je Transaktion<br/>• Mindest-Balance: 0,1 je Opt-in (temporär gesperrt)<br/>• vollwertig handel- &amp; auszahlbar (Mainnet)"]
+  end
+  subgraph PAY["② Zahlungs-Assets — womit der Agent den Dienst zahlt (ASAs / Token)"]
+    direction LR
+    USDC["USDC · Stablecoin<br/>Testnet 10458941<br/>Mainnet 31566704"]
+    EURC["EURC · Euro-Stablecoin"]
+    CIR["cirBTC"]
+    OWN["eigene ASA<br/>z. B. Demo-Token"]
+  end
+  ALGO -. "bezahlt die Netzgebühr JEDER Zahlung" .-> PAY
+</pre>
+      <p class="diagram-cap">ALGO ≠ Zahlungsmittel des Dienstes: es ist der Treibstoff. Bezahlt wird in einem ASA (Stablecoin). x402/GoPlausible settelt USDC übrigens auch auf Base &amp; Solana — nicht Algorand-gebunden.</p>
+    </div>
+    <div class="panel flag" style="margin-top:16px">
+      <p style="margin:0"><b>Mythos „ALGO geht nur rein":</b> falsch. ALGO ist ein regulärer Coin mit Marktpreis, den man senden, empfangen, handeln und an Börsen <b>auszahlen</b> kann. Auf dem <b>Testnet</b> ist alles — ALGO wie Test-USDC — bewusst wertlos und daher nicht auszahlbar; das ist eine Testnet-Eigenschaft, keine ALGO-Eigenschaft.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Circle-Coins &amp; Netze</p>
+    <h2>Drei Stablecoins, viele Ketten</h2>
+    <p class="section-note">Der Circle-Faucet bietet drei Test-Token an. Alle sind <b>ASAs</b> derselben Art wie oben — nur unterschiedlich hinterlegt. Wir nutzen davon <b>USDC</b>; die anderen erklären wir der Vollständigkeit halber.</p>
+    <div class="cards">
+      <div class="card">
+        <span class="tag">USDC</span>
+        <h3>USD-Stablecoin</h3>
+        <p>Circles Dollar-Coin — <span class="plain">1 USDC ≈ 1 US-Dollar</span>, voll besichert. <span class="plain">Unser Zahlungsmittel.</span></p>
+      </div>
+      <div class="card">
+        <span class="tag">EURC</span>
+        <h3>Euro-Stablecoin</h3>
+        <p>Dasselbe Prinzip in Euro — <span class="plain">1 EURC ≈ 1 Euro</span>. Nutzen wir nicht, aber die Preise ließen sich genauso in EURC stellen.</p>
+      </div>
+      <div class="card">
+        <span class="tag">cirBTC</span>
+        <h3>Bitcoin als Token</h3>
+        <p>Ein Bitcoin-repräsentierendes Token von Circle — Bitcoin als On-Chain-Asset. Für uns irrelevant (volatil, kein Stablecoin).</p>
+      </div>
+    </div>
+    <div class="diagram" style="margin-top:16px">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','tertiaryColor':'#33261a','clusterBkg':'#0d1e1f','clusterBorder':'#2f4a47'}}}%%
+flowchart TB
+  CIRCLE["Circle prägt denselben Coin<br/>nativ auf vielen Ketten"]
+  CIRCLE --> USDC["USDC"]
+  CIRCLE --> EURC["EURC"]
+  CIRCLE --> CIR["cirBTC"]
+  subgraph NETS["Pro Kette eine EIGENE On-Chain-ID (Beispiel USDC)"]
+    direction LR
+    ALG["Algorand<br/>Testnet-ASA 10458941<br/>Mainnet 31566704"]
+    BASE["Base<br/>ERC-20-Contract"]
+    SOL["Solana<br/>SPL-Mint"]
+  end
+  USDC --> ALG
+  USDC --> BASE
+  USDC --> SOL
+</pre>
+      <p class="diagram-cap">Dieselbe Münze, verschiedene Ketten, je eigene ID. Deshalb trägt x402 einen <b>network</b>-Bezeichner (CAIP-2, z. B. <code>algorand:SGO1…</code>) — er sagt, auf welcher Kette dieselbe Münze gemeint ist. x402/GoPlausible settelt aktuell auf <b>Algorand, Base und Solana</b>.</p>
+    </div>
+  </section>
+
+  <section>
     <p class="eyebrow">Die Struktur</p>
     <h2>Wie die Bausteine zusammenhängen</h2>
     <p class="section-note">Ein Gateway, zwei bezahlte Hops: der Agent zahlt <b>B</b> (die BSF-Mehrwert-Schicht), und <b>B</b> entdeckt und zahlt seinerseits <b>A</b> (den neutralen Ledger). B behält die Marge. Genau das demonstriert Service-Verkettung + Mehrwert-Bepreisung.</p>
