@@ -33,6 +33,7 @@ class MintDemoAssetTest {
 
     @Test
     void mintDistributeAndReport() throws Exception {
+        Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "on-chain setup — run with -Dx402.live=true");
         Assumptions.assumeTrue(agentMnemonic.isPresent() && bMnemonic.isPresent(),
                 "need agent + B mnemonics");
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");

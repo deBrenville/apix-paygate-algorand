@@ -33,6 +33,7 @@ class SeedBFundingTest {
 
     @Test
     void seedAndOptInB() throws Exception {
+        Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "on-chain setup — run with -Dx402.live=true");
         Assumptions.assumeTrue(agentMnemonic.isPresent() && bMnemonic.isPresent(),
                 "need ONRAMP_PAYER_MNEMONIC + ONRAMP_B_PAYER_MNEMONIC");
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");

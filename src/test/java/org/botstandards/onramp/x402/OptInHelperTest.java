@@ -32,6 +32,7 @@ class OptInHelperTest {
 
     @Test
     void statusAndOptIn() {
+        Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "on-chain setup — run with -Dx402.live=true");
         Assumptions.assumeTrue(agentMnemonic.isPresent(), "set ONRAMP_PAYER_MNEMONIC");
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");
         handle(algod, mnemonicAccount(agentMnemonic.get()), "agent");

@@ -20,7 +20,7 @@ class BsmResourceTest {
                 .body("endpoint", endsWith("/gw/echo"))
                 .body("payment.protocol", is("x402"))
                 .body("price.network", is("algorand-testnet"))
-                .body("price.asset", is("10458941"));
+                .body("price.asset", is("768322928"));
     }
 
     @Test
