@@ -102,7 +102,9 @@ public class X402GatewayFilter implements ContainerRequestFilter {
             abort(ctx, error402("settlement failed", requirements));
             return;
         }
-        // Paid. Expose the settlement tx so the response/proxy can surface it.
+        // Paid. Log the on-chain settlement (visible per hop in the demo) and expose the tx.
+        io.quarkus.logging.Log.infof("x402 settled: route=%s amount=%s tx=%s",
+                route, requirements.get("amount"), settle.txId());
         ctx.getHeaders().add("X-Onramp-Settled-Tx", settle.txId());
     }
 
