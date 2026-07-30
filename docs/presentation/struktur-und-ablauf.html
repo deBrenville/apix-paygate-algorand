@@ -394,25 +394,29 @@ flowchart TB
   <section>
     <p class="eyebrow">Einrichtung · einmalig</p>
     <h2>Zwei Konten fürs Testnet betanken</h2>
-    <p class="section-note">Die Kaskade hat zwei Zahler: den <b>Agenten</b> (zahlt B) und <b>B</b> selbst (zahlt A). Beide Konten durchlaufen einmalig denselben dreistufigen Funding-Prozess.</p>
+    <p class="section-note"><b>Drei Konten:</b> zwei <b>Zahler</b> mit Mnemonic in der <code>.env</code> (Agent → zahlt B; B → zahlt A) und ein reiner <b>Empfänger</b> A (nur Adresse, kein Key, kein USDC). Der APIX-Wrapper hält im Kern gar kein Geld.</p>
     <div class="diagram">
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','tertiaryColor':'#33261a','clusterBkg':'#0d1e1f','clusterBorder':'#2f4a47'}}}%%
 flowchart TD
-  D["① ALGO-Dispenser<br/>bank.testnet.algorand.network"]
-  C["③ Circle-Faucet<br/>faucet.circle.com"]
-  subgraph AGENT["Agent-Konto"]
-    A1["ALGO"] --> A2["② Opt-in USDC<br/>ASA 10458941"] --> A3["Test-USDC"]
+  D["ALGO-Dispenser<br/>bank.testnet.algorand.network"]
+  C["Circle-Faucet<br/>faucet.circle.com"]
+  subgraph AGENT["Agent — zahlt B (Mnemonic)"]
+    A1["ALGO"] --> A2["Opt-in 10458941"] --> A3["Test-USDC ✓"]
   end
-  subgraph BK["B-Konto (Humanity)"]
-    B1["ALGO"] --> B2["② Opt-in USDC<br/>ASA 10458941"] --> B3["Test-USDC"]
+  subgraph BK["B · BSF Humanity — empfängt + zahlt A (Mnemonic)"]
+    B1["ALGO"] --> B2["Opt-in 10458941"] --> B3["Test-USDC ✓ (Puffer)"]
+  end
+  subgraph AK["A · Basis-Ledger — nur Empfänger (nur Adresse)"]
+    C1["ALGO"] --> C2["Opt-in 10458941"] --> C3["kein USDC nötig"]
   end
   D -->|"Test-ALGO"| A1
   D -->|"Test-ALGO"| B1
+  D -->|"Test-ALGO"| C1
   C -->|"Test-USDC"| A3
   C -->|"Test-USDC"| B3
 </pre>
-      <p class="diagram-cap">Reihenfolge je Konto: ALGO (Gebühren + Mindest-Balance) → Opt-in in die USDC-ASA 10458941 → dann kann der Circle-Faucet USDC schicken.</p>
+      <p class="diagram-cap">Je Konto: ALGO → Opt-in USDC 10458941 → dann USDC. <b>Ausnahme A:</b> nur ALGO + Opt-in, <b>kein USDC</b> (empfängt nur). <code>.env</code>: <code>ONRAMP_PAYER_MNEMONIC</code> (Agent), <code>ONRAMP_B_PAYER_MNEMONIC</code> (B), <code>ONRAMP_A_PAYTO_ADDRESS</code> (A, nur Adresse).</p>
     </div>
     <div class="cards" style="margin-top:16px">
       <div class="card">
