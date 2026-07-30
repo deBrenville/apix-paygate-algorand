@@ -1,0 +1,329 @@
+<style>
+  :root {
+    --paper: #eef1f1;
+    --surface: #ffffff;
+    --surface-2: #f4f7f6;
+    --ink: #10201f;
+    --muted: #566a6b;
+    --line: #d6dedd;
+    --accent: #0d8578;
+    --accent-soft: #d3ece8;
+    --value: #a9711b;
+    --value-soft: #f0e4cf;
+    --panel: #0b1a1c;
+    --panel-text: #e2efec;
+    --panel-line: #24413e;
+    --radius: 14px;
+    --measure: 66ch;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #081214;
+      --surface: #0f1e1f;
+      --surface-2: #0c1819;
+      --ink: #e7f1ef;
+      --muted: #92a6a4;
+      --line: #21403c;
+      --accent: #35d7c3;
+      --accent-soft: #0f2c2a;
+      --value: #e2a745;
+      --value-soft: #2a2314;
+      --panel: #081517;
+      --panel-text: #e2efec;
+      --panel-line: #22403c;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #eef1f1; --surface: #ffffff; --surface-2: #f4f7f6; --ink: #10201f;
+    --muted: #566a6b; --line: #d6dedd; --accent: #0d8578; --accent-soft: #d3ece8;
+    --value: #a9711b; --value-soft: #f0e4cf; --panel: #0b1a1c; --panel-text: #e2efec; --panel-line: #24413e;
+  }
+  :root[data-theme="dark"] {
+    --paper: #081214; --surface: #0f1e1f; --surface-2: #0c1819; --ink: #e7f1ef;
+    --muted: #92a6a4; --line: #21403c; --accent: #35d7c3; --accent-soft: #0f2c2a;
+    --value: #e2a745; --value-soft: #2a2314; --panel: #081517; --panel-text: #e2efec; --panel-line: #22403c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1020px; margin: 0 auto; padding: clamp(28px, 5vw, 72px) clamp(18px, 4vw, 40px) 96px; }
+  section { margin-top: clamp(48px, 7vw, 88px); }
+
+  .eyebrow {
+    font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin: 0 0 12px;
+  }
+  h1 {
+    font-size: clamp(2rem, 5.2vw, 3.1rem); line-height: 1.05; letter-spacing: -0.02em;
+    font-weight: 800; margin: 0 0 18px; text-wrap: balance;
+  }
+  h2 {
+    font-size: clamp(1.35rem, 3vw, 1.9rem); line-height: 1.15; letter-spacing: -0.01em;
+    font-weight: 750; margin: 0 0 6px; text-wrap: balance;
+  }
+  .lead { font-size: clamp(1.05rem, 2vw, 1.22rem); color: var(--muted); max-width: var(--measure); margin: 0; }
+  p { max-width: var(--measure); }
+  .section-note { color: var(--muted); max-width: var(--measure); margin: 4px 0 26px; }
+
+  .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  /* Concept cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .card .tag {
+    align-self: flex-start; font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.02em; padding: 3px 9px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .card.value .tag { background: var(--value-soft); color: var(--value); }
+  .card h3 { margin: 2px 0 0; font-size: 1.06rem; font-weight: 700; }
+  .card p { margin: 0; font-size: 0.94rem; color: var(--muted); max-width: none; }
+  .card .plain { color: var(--ink); font-weight: 600; }
+
+  /* Diagram panels — deliberately dark schematic ground in BOTH themes */
+  .diagram {
+    background: var(--panel); border: 1px solid var(--panel-line); border-radius: var(--radius);
+    padding: 26px 18px; overflow-x: auto; margin-top: 8px;
+  }
+  .diagram .mermaid { display: flex; justify-content: center; min-width: 520px; }
+  .diagram-cap {
+    color: var(--panel-text); opacity: 0.72; font-family: var(--mono); font-size: 0.74rem;
+    text-align: center; margin: 14px 0 0; letter-spacing: 0.02em;
+  }
+
+  /* Flow beats (the process, as words) */
+  .beats { display: grid; gap: 10px; counter-reset: beat; margin-top: 20px; }
+  .beat {
+    display: grid; grid-template-columns: 34px 1fr; gap: 14px; align-items: baseline;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+  }
+  .beat::before {
+    counter-increment: beat; content: counter(beat);
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border-radius: 8px; width: 34px; height: 34px;
+    display: grid; place-items: center; font-size: 0.9rem;
+  }
+  .beat b { font-weight: 700; }
+  .beat span { color: var(--muted); }
+
+  /* Options / answer to the ALGO question */
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px;
+  }
+  .panel.flag { border-left: 4px solid var(--accent); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 18px; }
+  .opt {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px 22px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .opt.rec { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .opt .badge {
+    align-self: flex-start; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); }
+  .opt h3 { margin: 0; font-size: 1.1rem; }
+  .opt ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 0.94rem; }
+  .opt li { margin: 4px 0; }
+  code, .k { font-family: var(--mono); font-size: 0.86em; background: var(--surface-2); padding: 1px 6px; border-radius: 6px; }
+
+  .status { display: grid; gap: 10px; margin-top: 18px; }
+  .status .row { display: flex; align-items: flex-start; gap: 12px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 8px; flex: none; }
+  .dot.done { background: var(--accent); }
+  .dot.open { background: var(--value); }
+  .dot.next { background: var(--muted); }
+
+  .foot { margin-top: 64px; color: var(--muted); font-size: 0.86rem; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    section { animation: rise 0.5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">APIX x402 Onramp · Struktur &amp; Ablauf</p>
+    <h1>Bezahlbare, auffindbare APIs für autonome Agenten</h1>
+    <p class="lead">Ein Agent findet einen Dienst, zahlt pro Aufruf auf Algorand und bekommt ein Ergebnis — ohne Anmeldung, ohne Mensch. Diese Seite erklärt die Bausteine, den Ablauf und beantwortet die ALGO/ASA/USDC-Frage.</p>
+  </header>
+
+  <section>
+    <p class="eyebrow">Das Vokabular</p>
+    <h2>Sechs Begriffe, einmal geradegerückt</h2>
+    <p class="section-note">Die Abstraktionen sind eigentlich simpel, sobald man sie nebeneinanderlegt.</p>
+    <div class="cards">
+      <div class="card">
+        <span class="tag">ALGO</span>
+        <h3>Der Treibstoff</h3>
+        <p>Die native Münze von Algorand. Zahlt nur die winzigen <span class="plain">Netzgebühren</span> (~0,001 pro Transaktion). Wie Briefmarken — <span class="plain">nicht der Kaufpreis</span>.</p>
+      </div>
+      <div class="card">
+        <span class="tag">ASA</span>
+        <h3>Ein Token auf Algorand</h3>
+        <p>Algorand Standard Asset — jeder Token, der auf Algorand ausgegeben wird. <span class="plain">USDC ist eine ASA.</span> Ein eigener Demo-Token wäre auch eine ASA.</p>
+      </div>
+      <div class="card">
+        <span class="tag">USDC / USDCa</span>
+        <h3>Der Preis</h3>
+        <p>Ein Stablecoin (1 Token = 1 US-Dollar), ausgegeben als ASA. <span class="plain">Damit zahlt der Agent</span> den eigentlichen Preis pro Aufruf.</p>
+      </div>
+      <div class="card">
+        <span class="tag">x402</span>
+        <h3>Das Bezahl-Protokoll</h3>
+        <p>HTTP „402 Payment Required". Die API sagt <span class="plain">„erst zahlen"</span>, der Client zahlt, fragt erneut, bekommt das Ergebnis. Maschinen-nativ.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Facilitator</span>
+        <h3>Der Abwickler</h3>
+        <p>GoPlausible prüft die Zahlung (<span class="plain">verify</span>) und wickelt sie on-chain ab (<span class="plain">settle</span>). Wir betreiben <span class="plain">keine</span> Blockchain-Infrastruktur selbst.</p>
+      </div>
+      <div class="card value">
+        <span class="tag">BSM / APIX-Index</span>
+        <h3>Die Auffindbarkeit</h3>
+        <p>Das maschinenlesbare Manifest, über das ein Agent Dienst <span class="plain">und Preis findet</span>. Der APIX-eigene Teil — <span class="plain">Discovery</span>, den Algorand fehlt.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Die Struktur</p>
+    <h2>Wie die Bausteine zusammenhängen</h2>
+    <p class="section-note">Das Onramp-Gateway ist das Produkt. Der Sanctions-Service ist nur die erste Instanz dahinter. Der Facilitator und die Kette liegen außerhalb.</p>
+    <div class="diagram">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','secondaryColor':'#33261a','tertiaryColor':'#101f20','clusterBkg':'#0d1e1f','clusterBorder':'#2f4a47','edgeLabelBackground':'#0b1a1c'}}}%%
+flowchart LR
+  A["🤖 Autonomer<br/>Agent"]
+  subgraph ONR["APIX x402 Onramp — Gateway (das Produkt)"]
+    direction TB
+    B["BSM-Manifest<br/>Discovery"]
+    F["x402-Filter<br/>402 · verify · settle"]
+    P["Reverse-Proxy<br/>+ Forward-Secret"]
+  end
+  FAC["GoPlausible<br/>Facilitator"]
+  CHAIN[("Algorand<br/>Testnet")]
+  subgraph UP["Upstream — privat, nur übers Gateway erreichbar"]
+    S["Sanctions-Service<br/>echte SanctionsMatcher-Library"]
+  end
+  A -->|"discover"| B
+  A -->|"Aufruf + X-PAYMENT"| F
+  F -->|"verify / settle"| FAC
+  FAC --> CHAIN
+  F --> P
+  P -->|"nur mit Secret"| S
+  S -->|"Ergebnis"| A
+</pre>
+      <p class="diagram-cap">Zahlung + Auffindbarkeit in einem Gateway. Der Anbieter schreibt keine Bezahl-Logik.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Der Ablauf</p>
+    <h2>Ein Aufruf, Schritt für Schritt</h2>
+    <p class="section-note">Genau diese Sequenz zeigt das Demo-Video — der Agent macht alles selbst.</p>
+    <div class="diagram">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','actorBkg':'#12312e','actorBorder':'#35d7c3','actorTextColor':'#e6f3f0','signalColor':'#8fd8cd','signalTextColor':'#cfe9e4','noteBkgColor':'#33261a','noteTextColor':'#f0e4cf','noteBorderColor':'#a9711b'}}}%%
+sequenceDiagram
+  autonumber
+  participant Ag as 🤖 Agent
+  participant On as Onramp
+  participant Fa as Facilitator
+  participant Up as Sanctions
+  Ag->>On: BSM lesen (Discovery)
+  On-->>Ag: Preis + x402-Bedingungen
+  Ag->>On: Aufruf ohne Zahlung
+  On-->>Ag: 402 Payment Required
+  Note over Ag: signiert ASA-Zahlung (Algorand)
+  Ag->>On: Aufruf + X-PAYMENT
+  On->>Fa: verify + settle
+  Fa-->>On: ok — on-chain txId
+  On->>Up: weiterleiten (Forward-Secret)
+  Up-->>On: CLEAR / MATCH / MATCH_EXEMPT
+  On-->>Ag: Ergebnis
+  Note over Ag: entscheidet (proceed / block)
+</pre>
+      <p class="diagram-cap">Kein Konto, keine E-Mail, kein OAuth, kein CAPTCHA — reine Maschinen-Interaktion.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Die Werte-Schicht</p>
+    <h2>Ledger, kein blindes Urteil</h2>
+    <p class="section-note">Der Sanctions-Service bewertet nicht neutral: eine Listung wird mit Herkunft protokolliert, nicht automatisch geblockt. Das ist der Innovations-Trumpf — und wertetreu zur BSF-Grundhaltung.</p>
+    <div class="diagram">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'15px','primaryColor':'#12312e','primaryBorderColor':'#35d7c3','primaryTextColor':'#e6f3f0','lineColor':'#5fb3a8','tertiaryColor':'#33261a'}}}%%
+flowchart TD
+  M["Abgleich gegen<br/>Sanktionslisten"]
+  M -->|"UN / EU / SECO"| BLOCK["MATCH<br/>blockiert"]
+  M -->|"nur OFAC + menschheitsdienend<br/>(z. B. ISGH-Fall)"| EX["MATCH_EXEMPT<br/>Provenienz protokolliert"]
+  M -->|"kein Treffer"| CL["CLEAR"]
+</pre>
+      <p class="diagram-cap">Menschheitsdienende Organisationen werden nicht auto-geblockt, auch wenn eine einzelne Jurisdiktion sie listet.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Der Multiplikator</p>
+    <h2>Der Sanctions-Dienst ist nur der Beweis</h2>
+    <p>Der eigentliche Wert ist das Gateway: <b>jeder Anbieter</b> hängt seine bestehende API mit <b>einem Config-Eintrag</b> daran und ist damit sofort <b>auffindbar</b> (im Agenten-Index) <b>und bezahlbar</b> (x402/Algorand) — ohne eine Zeile Bezahl-Code. Im Video zeigen wir das mit einem <b>zweiten, völlig anderen Dienst</b>, in ~30 Sekunden angebunden.</p>
+  </section>
+
+  <hr class="rule" />
+
+  <section>
+    <p class="eyebrow">Deine offene Frage</p>
+    <h2>„Reichen 10 ALGO für die Demo?"</h2>
+    <div class="panel flag">
+      <p style="margin:0 0 10px"><b>Für Gebühren, Opt-in und Mint: ja, mehr als genug.</b> Aber ALGO ist der <i>Treibstoff</i>, nicht das <i>Zahlungs-Asset</i>. Der Facilitator hat im Live-Test ein natives ALGO abgelehnt und verlangt einen <span class="k">axfer</span> — also eine <b>ASA</b>. Der Agent braucht deshalb ein <b>ASA-Guthaben</b> zum Zahlen.</p>
+      <p style="margin:0; color:var(--muted)">Gute Nachricht: deine 10 ALGO decken <b>beide</b> Wege dahin (Gebühr + Mindest-Balance + Opt-in/Mint). Es fehlt nur die Entscheidung, <i>welches</i> Asset der Agent zahlt.</p>
+    </div>
+    <div class="two">
+      <div class="opt rec">
+        <span class="badge">Weg A · Empfehlung</span>
+        <h3>Testnet-USDC</h3>
+        <ul>
+          <li>Du: <b>ein Faucet-Besuch</b> (Circle → Algorand-Testnet → Adresse → ~10 Test-USDC).</li>
+          <li>Ich: automatisiere den USDC-Opt-in (<span class="k">ASA 10458941</span>).</li>
+          <li>Stärkste Story für die Algorand-Jury: <b>echtes USDC</b>.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <span class="badge">Weg B · faucet-frei</span>
+        <h3>Selbst-geminete Demo-ASA</h3>
+        <ul>
+          <li>Ich: schreibe einen Ein-Kommando-Helfer, der eine ASA erzeugt und dir selbst mintet.</li>
+          <li>Du: läufst das Kommando einmal — <b>nichts Externes</b>.</li>
+          <li>Narrativ: „Demo-Token; mainnet = USDCa". Etwas schwächere Story.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Wo wir stehen</p>
+    <h2>Der Stand gerade</h2>
+    <div class="status">
+      <div class="row"><span class="dot done"></span><p style="margin:0"><b>Gate bestanden.</b> Der reine Java-Client erzeugt eine Zahlung, die der echte Testnet-Facilitator akzeptiert und simuliert — das war das größte Risiko.</p></div>
+      <div class="row"><span class="dot open"></span><p style="margin:0"><b>Offen — deine Entscheidung:</b> Demo-Asset (Weg A oder B oben). Danach schließe ich <span class="k">settle</span> mit echtem on-chain txId ab.</p></div>
+      <div class="row"><span class="dot next"></span><p style="margin:0"><b>Danach:</b> die Wallet-unabhängige Server-Seite (Gateway, x402-Filter, BSM-Discovery, Sanctions-Upstream, OFAC/pro-humanity), dann Demo-Runner, Deck und Live-URL.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">Abgabefrist WeAreDevelopers x402 Hackathon: 31. Juli, 23:00 CEST · Jury-bewertet · Prize-Pool $10.000.</p>
+
+</div>
