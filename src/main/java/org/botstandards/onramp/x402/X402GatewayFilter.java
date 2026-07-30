@@ -54,6 +54,17 @@ public class X402GatewayFilter implements ContainerRequestFilter {
             return; // let the resource return 404
         }
         OnrampConfig.Upstream cfg = up.get();
+
+        // Loggable, non-PII data-processing attestation (audit trail in access logs). The subject
+        // stays in the body; only this boolean rides in the URL where it is safe to log.
+        if (cfg.requiresAttestation()) {
+            String attested = ctx.getUriInfo().getQueryParameters().getFirst("lawfulBasisAttested");
+            if (!"true".equalsIgnoreCase(attested)) {
+                abortAttestation(ctx);
+                return;
+            }
+        }
+
         if (cfg.priceMicros() <= 0) {
             return; // free route
         }
@@ -101,6 +112,20 @@ public class X402GatewayFilter implements ContainerRequestFilter {
         body.put("error", message);
         body.put("accepts", List.of(requirements));
         return body;
+    }
+
+    private void abortAttestation(ContainerRequestContext ctx) {
+        Map<String, Object> body = Map.of(
+                "error", "data-processing attestation required",
+                "hint", "add ?lawfulBasisAttested=true — you (the caller) are the controller with a lawful basis");
+        try {
+            ctx.abortWith(Response.status(422)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(mapper.writeValueAsString(body))
+                    .build());
+        } catch (Exception e) {
+            ctx.abortWith(Response.status(422).build());
+        }
     }
 
     private void abort(ContainerRequestContext ctx, Map<String, Object> body) {

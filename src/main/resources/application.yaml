@@ -20,8 +20,18 @@ onramp:
       forward-secret: "internal-s3cr3t"
       pay-to: "${ONRAMP_A_PAYTO_ADDRESS:}"
       price-micros: 10000
+      requires-attestation: true
       capability: "compliance.sanctions.screen"
       description: "Neutral global sanctions ledger — all registers, match-proof"
+    # Upstream B — BSF humanity value layer (chains to A over x402, keeps a margin).
+    - route: "humanity"
+      upstream-url: "http://localhost:8080/internal/humanity/screen"
+      forward-secret: "internal-s3cr3t"
+      pay-to: "${ONRAMP_B_PAYTO_ADDRESS:}"
+      price-micros: 30000
+      requires-attestation: true
+      capability: "compliance.sanctions.screen.humanity"
+      description: "BSF humanity-filtered sanctions screening — chains the neutral ledger"
     # Free echo upstream — used by ReverseProxyResourceTest (no payment).
     - route: "echo"
       upstream-url: "http://localhost:8089/echo"
@@ -37,6 +47,14 @@ onramp:
       price-micros: 10000
       capability: "demo.paid-echo"
       description: "Paid echo test upstream"
+    # Free route that requires the data-processing attestation — used by X402GatewayFilterTest.
+    - route: "attested-echo"
+      upstream-url: "http://localhost:8089/echo"
+      forward-secret: "s3cr3t"
+      price-micros: 0
+      requires-attestation: true
+      capability: "demo.attested-echo"
+      description: "Attestation-gated echo test upstream"
 
 # Test profile: point the facilitator at the in-test WireMock stub.
 "%test":

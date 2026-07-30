@@ -78,4 +78,18 @@ class X402GatewayFilterTest {
                 .when().post("/gw/paid-echo")
                 .then().statusCode(402).body("error", containsString("invalid"));
     }
+
+    @Test
+    void attestationRequiredRouteRejectsWithoutFlag() {
+        given().contentType("application/json").body("{\"name\":\"x\"}")
+                .when().post("/gw/attested-echo")
+                .then().statusCode(422).body("error", containsString("attestation"));
+    }
+
+    @Test
+    void attestationRequiredRoutePassesWithFlag() {
+        given().contentType("application/json").body("{\"name\":\"x\"}")
+                .when().post("/gw/attested-echo?lawfulBasisAttested=true")
+                .then().statusCode(200).body("ok", is(true));
+    }
 }

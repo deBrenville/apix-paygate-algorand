@@ -21,6 +21,14 @@ public interface OnrampConfig {
     /** Shared secret the gateway injects to internal origins; they reject requests without it. */
     String internalForwardSecret();
 
+    /** This app's own public base URL (where /gw/{route} lives) — used for the cascade's second hop. */
+    @WithDefault("http://localhost:8080")
+    String selfBaseUrl();
+
+    /** The route the humanity layer discovers and pays downstream (Upstream A). */
+    @WithDefault("sanctions-basic")
+    String humanityDownstreamRoute();
+
     List<Upstream> upstreams();
 
     /** One wrapped API: a public paywalled route that reverse-proxies to a private origin. */
@@ -40,6 +48,10 @@ public interface OnrampConfig {
         /** Price in the asset's minor units (e.g. USDC has 6 decimals → 10000 = 0.01 USDC). 0 = free route (no payment). */
         @WithDefault("0")
         long priceMicros();
+
+        /** If true, the gateway requires a loggable {@code ?lawfulBasisAttested=true} (non-PII audit). */
+        @WithDefault("false")
+        boolean requiresAttestation();
 
         /** APIX capability advertised in the BSM, e.g. "compliance.sanctions.screen". */
         String capability();

@@ -61,6 +61,8 @@ The response returns the **source data as match-proof** so the caller can keep i
 
 DSGVO note: the source records are **already published by the authorities for exactly this purpose**; company records are largely outside GDPR; person records are covered but justified by Art. 6(1)(c)/(f) + public-source + purpose-consistency. The real risk is a **false positive**, mitigated by evidence-framing + the score (never asserting the query subject *is* the listed person).
 
+**Transport invariant (PII):** the screened subject travels **only in the POST request body**, never in query parameters or the URL path. Query strings leak into access/proxy/CDN logs, `Referer` headers, and browser history — which would undermine statelessness and data-minimisation. Keeping the subject in the body means default access logs (which record method + URL, not the body) stay PII-free. The gateway sees the body in cleartext (the Kontor trust point); mitigations: TLS in transit, no request-body logging, nothing persisted.
+
 ## 4. Architecture (all Quarkus / Java — single technology)
 
 1. **`apix-x402-onramp` service (new standalone Quarkus app)** — the hackathon repo; separate from production `apix-registry` for neutrality/governance hygiene. Generic reverse-proxy gateway parameterised by a per-upstream config entry:
