@@ -9,9 +9,9 @@ onramp:
   # Algorand network + facilitator (pinned during the x402 spike, Task 2)
   network: "algorand-testnet"
   facilitator-url: "https://facilitator.goplausible.xyz"
-  # Price asset. Faucet-free demo: dUSD (ASA 768322928), minted by the agent. Mainnet flips to
-  # USDC (31566704) via config; testnet USDC is 10458941 if a faucet becomes available.
-  price-asset-id: "768322928"
+  # Price asset: official testnet USDC (Circle, ASA 10458941). Mainnet flips to 31566704 via config.
+  # (Faucet-free fallback was the agent-minted dUSD 768322928.)
+  price-asset-id: "10458941"
   # Shared secret the gateway injects to internal origins (they reject requests without it).
   internal-forward-secret: "internal-s3cr3t"
   upstreams:
