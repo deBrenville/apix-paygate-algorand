@@ -9,5 +9,13 @@ onramp:
   # Algorand network + facilitator (pinned during the x402 spike, Task 2)
   network: "algorand-testnet"
   facilitator-url: "https://facilitator.goplausible.xyz"
-  # Price asset: "0" = native ALGO (default, no ASA opt-in). Set to the USDCa testnet ASA id to price in USDC.
-  price-asset-id: "0"
+  # Price asset: testnet USDC ASA (native ALGO is rejected by the facilitator — spike result).
+  price-asset-id: "10458941"
+  upstreams:
+    # Echo test upstream — wired to a WireMock stub in ReverseProxyResourceTest.
+    - route: "echo"
+      upstream-url: "http://localhost:8089/echo"
+      forward-secret: "s3cr3t"
+      price-micros: 10000
+      capability: "demo.echo"
+      description: "Echo test upstream"
