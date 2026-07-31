@@ -83,7 +83,8 @@ class CascadeDemoRunner {
     // ---- beats (shared by the single-beat tests and the full run) ------------------------------
 
     private String beatDiscover() {
-        beat(1, "DISCOVER — the agent searches the APIX registry by capability (no hardcoded URL)");
+        beat(1, "DISCOVER — the agent searches the APIX registry by capability (no hardcoded URL)",
+                "The agent finds the service by capability in the APIX registry — no URL is hardcoded.");
         System.out.printf("   search     : capability=%s%n", CAPABILITY);
         String endpoint = resolveEndpoint();
         System.out.printf("   found      : %s%n", endpoint);
@@ -91,7 +92,8 @@ class CascadeDemoRunner {
     }
 
     private void beatPayGate(String endpoint) {
-        beat(2, "PAY-GATE (dynamic) — the agent calls without paying and gets a real 402");
+        beat(2, "PAY-GATE (dynamic) — the agent calls without paying and gets a real 402",
+                "The unpaid call is refused with HTTP 402 and the exact price. x402 means: pay first.");
         Response unpaid = unpaidCall(endpoint);
         System.out.printf(Locale.US, "   HTTP %d — %.2f USDC required (asset %s), payTo %s%n",
                 unpaid.statusCode(),
@@ -107,7 +109,8 @@ class CascadeDemoRunner {
         long amount = Long.parseLong(terms.jsonPath().getString("accepts[0].amount"));
         long asset = Long.parseLong(terms.jsonPath().getString("accepts[0].asset"));
 
-        beat(3, "SETTLE — the agent signs a USDC payment on Algorand for exactly those terms");
+        beat(3, "SETTLE — the agent signs a USDC payment on Algorand for exactly those terms",
+                "The agent signs a USDC payment on Algorand. Two 'x402 settled' lines = two real on-chain transactions.");
         Account agent = new Account(unquote(agentMnemonic.get()));
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");
         TransactionParametersResponse params = algod.TransactionParams().execute().body();
@@ -125,16 +128,19 @@ class CascadeDemoRunner {
             System.out.printf("   HTTP %d — settlement did NOT complete (see the errors above)%n", status);
         }
 
-        beat(4, "CASCADE — B discovered and paid the neutral ledger A over x402 (second hop)");
+        beat(4, "CASCADE — B discovered and paid the neutral ledger A over x402 (second hop)",
+                "The service it paid (B) is itself an agent — it discovers and pays a second service (A) over x402.");
         System.out.println("   (server log above: a second 'x402 settled' line for the B->A hop)");
 
-        beat(5, "RESULT — neutral ledger + BSF humanity filter");
+        beat(5, "RESULT — neutral ledger + BSF humanity filter",
+                "The neutral ledger flags OFAC; the humanity layer returns MATCH_EXEMPT, keeping the record as evidence.");
         System.out.printf("   outcome    : %s%n", outcome);
         System.out.printf("   provenance : register=%s  score=%s%n", register, score);
         System.out.printf("   exemption  : %s%n", paid.jsonPath().getString("exemption.reason"));
         System.out.printf("   precedent  : %s%n", paid.jsonPath().getString("exemption.precedent"));
 
-        beat(6, "ECONOMICS — value-add margin, machine to machine");
+        beat(6, "ECONOMICS — value-add margin, machine to machine",
+                "The agent paid 0.03, B paid 0.01 and kept 0.02 — value-add pricing, machine to machine.");
         System.out.println("   agent paid B 0.03 USDC; B paid A 0.01 USDC; B margin = 0.02 USDC");
         System.out.println("   No account, no email, no OAuth, no CAPTCHA. Discovered, then paid.");
         System.out.println("=".repeat(72));
@@ -166,11 +172,13 @@ class CascadeDemoRunner {
         return "{\"name\":\"" + SUBJECT + "\",\"country\":\"" + COUNTRY + "\"}";
     }
 
-    private static void beat(int n, String title) {
+    private static void beat(int n, String title, String caption) {
         System.out.println();
         System.out.println("=".repeat(72));
         System.out.printf("  BEAT %d · %s%n", n, title);
         System.out.println("-".repeat(72));
+        System.out.printf("  > %s%n", caption); // plain-language subtitle for the silent screen recording
+        System.out.println();
     }
 
     private static String unquote(String raw) {
