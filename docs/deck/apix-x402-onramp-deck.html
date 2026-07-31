@@ -91,7 +91,7 @@
       <div class="wm"><span class="a">APIX</span><span class="p">Paygate</span></div>
     </div>
     <p class="lede">Make any API <span class="spark">discoverable</span> <em>and</em> <span class="spark">payable</span> for AI agents — in one config step.</p>
-    <p class="desc">the x402 onramp · on Algorand</p>
+    <p class="desc">the x402 pay-gate · on Algorand</p>
     <div class="chips">
       <span class="chip">Live on Algorand testnet</span>
       <span class="chip">Real USDC</span>
@@ -131,7 +131,7 @@
     <p class="kicker">The product</p>
     <h2>One config entry → discoverable + payable</h2>
     <ul>
-      <li>The Onramp is a <b>reverse-proxy gateway</b> — point it at any existing API…</li>
+      <li>Paygate is a <b>reverse-proxy gateway</b> — point it at any existing API…</li>
       <li>…and it becomes <b>discoverable</b> (auto-registered in the APIX index, HATEOAS)…</li>
       <li>…and <b>payable</b> (x402 on Algorand enforced at the gateway) — <b>zero paywall code</b>.</li>
       <li>And it <b>composes</b>: services discover and pay services — <b>paid, discoverable chains</b>.</li>
@@ -146,9 +146,9 @@
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'14px','primaryColor':'#173140','primaryBorderColor':'#3fe0c5','primaryTextColor':'#eaf2f3','lineColor':'#3fe0c5','tertiaryColor':'#2a2314'}}}%%
 flowchart LR
-  AG["🤖 Agent"] -->|"① pay 0.03 · x402"| GW1["APIX Onramp<br/>gateway"]
+  AG["🤖 Agent"] -->|"① pay 0.03 · x402"| GW1["APIX Paygate<br/>gateway"]
   GW1 -->|"forward"| B["B · humanity<br/>(private)"]
-  B -->|"② pay 0.01 · x402"| GW2["APIX Onramp<br/>gateway"]
+  B -->|"② pay 0.01 · x402"| GW2["APIX Paygate<br/>gateway"]
   GW2 -->|"forward"| A["A · ledger<br/>(private)"]
 </pre>
       </div>
@@ -183,4 +183,4 @@ flowchart LR
   </section>
 
 </div>
-<div class="foot">APIX x402 Onramp · BSF</div>
+<div class="foot">APIX Paygate · BSF</div>
