@@ -39,6 +39,9 @@
   li:last-child{margin-bottom:0;}
   li::before{content:"";position:absolute;left:0;top:.5em;width:7px;height:7px;border-radius:2px;background:var(--apix);transform:rotate(45deg);}
   li.v::before{background:var(--gold);}
+  ul.cols2{max-width:none;columns:2;column-gap:34px;margin-top:18px;}
+  ul.cols2 li{break-inside:avoid;}
+  @media (max-width:640px){ul.cols2{columns:1;}}
   b{font-weight:700;color:var(--ink);}
 
   .quote{font-family:var(--font-display);font-size:clamp(1.3rem,3vw,2rem);font-weight:500;line-height:1.15;letter-spacing:-.015em;max-width:18ch;margin:0;}
@@ -124,27 +127,22 @@
   <section class="slide">
     <p class="kicker">The live demo — a cascade</p>
     <h2>Agent → humanity layer → neutral ledger</h2>
-    <div class="grid2">
-      <div class="panel">
+    <div class="panel">
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'14px','primaryColor':'#173140','primaryBorderColor':'#3fe0c5','primaryTextColor':'#eaf2f3','lineColor':'#3fe0c5','tertiaryColor':'#2a2314'}}}%%
-flowchart TD
-  AG["🤖 Agent"] -->|"① x402 · 0.03 USDC"| GW["APIX x402 Onramp — gateway<br/>discover · 402 · settle · reverse-proxy"]
-  GW -->|"forward (paid)"| B["B · humanity layer<br/>(private origin)"]
-  B -->|"② x402 · 0.01 USDC"| GW
-  GW -->|"forward (paid)"| A["A · neutral ledger<br/>(private origin)"]
-  B -.->|"MATCH_EXEMPT"| AG
+flowchart LR
+  AG["🤖 Agent"] -->|"① pay 0.03 · x402"| GW1["APIX Onramp<br/>gateway"]
+  GW1 -->|"forward"| B["B · humanity<br/>(private)"]
+  B -->|"② pay 0.01 · x402"| GW2["APIX Onramp<br/>gateway"]
+  GW2 -->|"forward"| A["A · ledger<br/>(private)"]
 </pre>
       </div>
-      <div>
-        <ul>
-          <li>Agent <b>searches by capability</b> (HATEOAS — knows only its goal), pays B.</li>
-          <li>B <b>discovers and pays A</b> — a <b>second on-chain hop</b>.</li>
-          <li>A returns every match as <b>evidence + score</b>. Stateless.</li>
-          <li class="v">B applies the <b>pro-humanity filter</b>: OFAC-only + humanity-serving → <b class="gold">MATCH_EXEMPT</b>, provenance kept.</li>
-        </ul>
-      </div>
-    </div>
+    <ul class="cols2">
+      <li>Agent <b>searches by capability</b> (HATEOAS — knows only its goal), pays B.</li>
+      <li>B <b>discovers and pays A</b> — a <b>second on-chain hop</b>.</li>
+      <li>A returns every match as <b>evidence + score</b>. Stateless.</li>
+      <li class="v">B applies the <b>pro-humanity filter</b>: OFAC-only + humanity-serving → <b class="gold">MATCH_EXEMPT</b>, provenance kept.</li>
+    </ul>
     <p class="pg">05 / 06</p>
   </section>
 
