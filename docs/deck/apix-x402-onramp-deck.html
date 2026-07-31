@@ -129,10 +129,11 @@
 <pre class="mermaid">
 %%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'14px','primaryColor':'#173140','primaryBorderColor':'#3fe0c5','primaryTextColor':'#eaf2f3','lineColor':'#3fe0c5','tertiaryColor':'#2a2314'}}}%%
 flowchart TD
-  AG["🤖 Agent"] -->|"0.03 USDC"| B["B · humanity layer"]
-  B -->|"0.01 USDC"| A["A · neutral ledger"]
-  A -->|"match-proof"| B
-  B -->|"MATCH_EXEMPT"| AG
+  AG["🤖 Agent"] -->|"① x402 · 0.03 USDC"| GW["APIX x402 Onramp — gateway<br/>discover · 402 · settle · reverse-proxy"]
+  GW -->|"forward (paid)"| B["B · humanity layer<br/>(private origin)"]
+  B -->|"② x402 · 0.01 USDC"| GW
+  GW -->|"forward (paid)"| A["A · neutral ledger<br/>(private origin)"]
+  B -.->|"MATCH_EXEMPT"| AG
 </pre>
       </div>
       <div>
