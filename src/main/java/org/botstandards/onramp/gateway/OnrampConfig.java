@@ -29,6 +29,16 @@ public interface OnrampConfig {
     @WithDefault("sanctions-basic")
     String humanityDownstreamRoute();
 
+    /** The APIX registry base URL agents search for discovery (GET /services?capability=…).
+     *  Defaults to the self-contained demo facade (captured real responses); override to a live
+     *  registry (e.g. http://localhost:8180 or https://api-index.org) to discover for real. */
+    @WithDefault("http://localhost:8080/apix")
+    String registryUrl();
+
+    /** Lifecycle stage to search in the registry (demo services register at DEVELOPMENT). */
+    @WithDefault("DEVELOPMENT")
+    String registryStage();
+
     List<Upstream> upstreams();
 
     /** One wrapped API: a public paywalled route that reverse-proxies to a private origin. */

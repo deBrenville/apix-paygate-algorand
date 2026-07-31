@@ -1,74 +1,59 @@
 package org.botstandards.onramp.client;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.algorand.algosdk.account.Account;
-import com.algorand.algosdk.v2.client.common.AlgodClient;
-import com.algorand.algosdk.v2.client.model.TransactionParametersResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
-import java.util.Map;
 import java.util.Optional;
-import org.botstandards.onramp.gateway.OnrampConfig;
-import org.botstandards.onramp.gateway.UpstreamRegistry;
-import org.botstandards.onramp.x402.X402AvmClient;
+import org.botstandards.onramp.discovery.ApixDiscoveryClient;
+import org.botstandards.onramp.x402.X402PayingCaller;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
- * The live cascade (run with -Dx402.live=true): the agent pays B over x402; B discovers and pays
- * A (the neutral ledger) over x402; A returns the match-proof; B applies the pro-humanity filter.
- * For the ISGH subject (OFAC-only + humanity-serving) the end result is MATCH_EXEMPT. Two real
- * on-chain settlements. Asset is the faucet-free dUSD; A's receiver defaults to the agent address.
+ * The live cascade over REAL APIX discovery (run with -Dx402.live=true): the agent searches the
+ * registry by capability to find B, pays B over x402; B searches for and pays the neutral ledger A;
+ * A returns the match-proof; B applies the pro-humanity filter -> MATCH_EXEMPT for the ISGH case.
+ * Two real on-chain settlements. Discovery is served by the self-contained facade (captured real
+ * registry responses); the facilitator is the live GoPlausible one.
  */
 @QuarkusTest
 @TestProfile(CascadeLiveProfile.class)
 class CascadeDemoIT {
 
-    private static final String ALGOD = "https://testnet-api.algonode.cloud";
-
     @ConfigProperty(name = "onramp.payer-mnemonic")
     Optional<String> agentMnemonic;
 
     @Inject
-    UpstreamRegistry registry;
+    ApixDiscoveryClient discovery;
 
     @Inject
-    OnrampConfig config;
+    X402PayingCaller caller;
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     void cascadeExemptsIsghCase() throws Exception {
         Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "live cascade — run with -Dx402.live=true");
         Assumptions.assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_PAYER_MNEMONIC");
 
-        OnrampConfig.Upstream humanity = registry.byRoute("humanity").orElseThrow();
-        String bPayTo = humanity.payTo().orElseThrow();
-        long amount = humanity.priceMicros();
-        long asset = Long.parseLong(config.priceAssetId());
-
         Account agent = new Account(unquote(agentMnemonic.get()));
-        AlgodClient algod = new AlgodClient(ALGOD, 443, "");
-        TransactionParametersResponse params = algod.TransactionParams().execute().body();
+        String humanityEndpoint = discovery.endpointByCapability("compliance.sanctions.screen.humanity");
 
-        X402AvmClient x402 = new X402AvmClient();
-        Map<String, Object> payload = x402.buildPayload(agent, bPayTo, amount, asset, params);
-        String xPayment = x402.toHeaderValue(payload);
+        String json = caller.callPaid(
+                humanityEndpoint, "?lawfulBasisAttested=true",
+                "{\"name\":\"Amara Okonkwo\",\"country\":\"NG\"}", agent);
 
-        given()
-                .header("X-PAYMENT", xPayment)
-                .contentType("application/json")
-                .body("{\"name\":\"Amara Okonkwo\",\"country\":\"NG\"}")
-                .when()
-                .post("/gw/humanity?lawfulBasisAttested=true")
-                .then()
-                .statusCode(200)
-                .body("outcome", is("MATCH_EXEMPT"))
-                .body("exemption.reason", notNullValue())
-                .body("matches[0].register", is("OFAC"));
+        JsonNode result = mapper.readTree(json);
+        assertEquals("MATCH_EXEMPT", result.path("outcome").asText());
+        assertFalse(result.path("exemption").path("reason").asText().isBlank());
+        assertEquals("OFAC", result.path("matches").path(0).path("register").asText());
     }
 
     private static String unquote(String raw) {
