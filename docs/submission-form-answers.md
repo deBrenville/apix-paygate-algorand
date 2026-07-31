@@ -47,16 +47,17 @@ Fill the `<<…>>` placeholders (personal / links) and paste the rest.
 > `<<add co-founders if any>>`
 
 **Pitch deck link (5–6 slides):**
-> `<<link to docs/deck/apix-x402-onramp-deck.md on GitHub, or an exported PDF/slides>>`
+> https://static.api-index.org/paygate-deck.html
 
 **Demo video link (3–5 min):**
-> `<<link to the recorded run of ./demo/run-demo.sh>>`
+> `<<link to the recorded run — YouTube/Drive unlisted>>`
 
 **GitHub repository URL:**
-> `<<https://github.com/…/apix-x402-onramp>>`
+> https://github.com/deBrenville/apix-paygate-algorand
 
 **Project URL (live demo):**
-> `<<deployed gateway URL, or: "runs locally against Algorand testnet — see README">>`
+> https://static.api-index.org/paygate-deck.html
+> *(or: "runs locally against Algorand testnet — see README")*
 
 ---
 
