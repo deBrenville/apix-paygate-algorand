@@ -1,6 +1,7 @@
 package org.botstandards.onramp.client;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.algorand.algosdk.account.Account;
 import com.algorand.algosdk.v2.client.common.AlgodClient;
@@ -67,16 +68,22 @@ class CascadeDemoRunner {
         String xPayment = x402.toHeaderValue(x402.buildPayload(agent, payTo, amount, asset, params));
         Response paid = given().header("X-PAYMENT", xPayment).contentType("application/json")
                 .body(body()).post(endpoint + "?lawfulBasisAttested=true");
-        System.out.printf("   HTTP %d — paid; both hops settled on-chain (see the 'x402 settled' lines above)%n",
-                paid.statusCode());
+        int status = paid.statusCode();
+        String outcome = paid.jsonPath().getString("outcome");
+        String register = paid.jsonPath().getString("matches[0].register");
+        String score = paid.jsonPath().getString("matches[0].score");
+        if (status == 200) {
+            System.out.println("   HTTP 200 — paid; both hops settled on-chain (see the 'x402 settled' lines above)");
+        } else {
+            System.out.printf("   HTTP %d — settlement did NOT complete (see the errors above)%n", status);
+        }
 
         beat(4, "CASCADE — B discovered and paid the neutral ledger A over x402 (second hop)");
         System.out.println("   (server log above: a second 'x402 settled' line for the B->A hop)");
 
         beat(5, "RESULT — neutral ledger + BSF humanity filter");
-        System.out.printf("   outcome    : %s%n", paid.jsonPath().getString("outcome"));
-        System.out.printf("   provenance : register=%s  score=%s%n",
-                paid.jsonPath().getString("matches[0].register"), paid.jsonPath().getString("matches[0].score"));
+        System.out.printf("   outcome    : %s%n", outcome);
+        System.out.printf("   provenance : register=%s  score=%s%n", register, score);
         System.out.printf("   exemption  : %s%n", paid.jsonPath().getString("exemption.reason"));
         System.out.printf("   precedent  : %s%n", paid.jsonPath().getString("exemption.precedent"));
 
@@ -84,6 +91,13 @@ class CascadeDemoRunner {
         System.out.println("   agent paid B 0.03 USDC; B paid A 0.01 USDC; B margin = 0.02 USDC");
         System.out.println("   No account, no email, no OAuth, no CAPTCHA. Discovered, then paid.");
         System.out.println("=".repeat(72));
+
+        // Hard gate — a broken take must fail RED, not narrate a green lie.
+        // 200 + MATCH_EXEMPT is only reachable when BOTH x402 hops settled: the second settlement
+        // (B->A) is a precondition for A returning the OFAC match that B then exempts.
+        assertEquals(200, status, "paid call did not return 200 — a payment hop failed to settle");
+        assertEquals("MATCH_EXEMPT", outcome, "cascade did not complete — A unreachable or policy not applied");
+        assertEquals("OFAC", register, "provenance lost — expected the OFAC match from neutral ledger A");
     }
 
     private static String body() {
