@@ -51,6 +51,7 @@ class CascadeDemoRunner {
         String endpoint = discovery.endpointByCapability(CAPABILITY);
         System.out.printf("   found      : %s%n", endpoint);
 
+        pause();
         beat(2, "PAY-GATE (dynamic) — the agent calls without paying and gets a real 402");
         Response unpaid = given().contentType("application/json")
                 .body(body()).post(endpoint + "?lawfulBasisAttested=true");
@@ -60,6 +61,7 @@ class CascadeDemoRunner {
         System.out.printf(Locale.US, "   HTTP %d — %.2f USDC required (asset %d), payTo %s%n",
                 unpaid.statusCode(), amount / 1_000_000.0, asset, payTo);
 
+        pause();
         beat(3, "SETTLE — the agent signs a USDC payment on Algorand for exactly those terms");
         Account agent = new Account(unquote(agentMnemonic.get()));
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");
@@ -78,15 +80,18 @@ class CascadeDemoRunner {
             System.out.printf("   HTTP %d — settlement did NOT complete (see the errors above)%n", status);
         }
 
+        pause();
         beat(4, "CASCADE — B discovered and paid the neutral ledger A over x402 (second hop)");
         System.out.println("   (server log above: a second 'x402 settled' line for the B->A hop)");
 
+        pause();
         beat(5, "RESULT — neutral ledger + BSF humanity filter");
         System.out.printf("   outcome    : %s%n", outcome);
         System.out.printf("   provenance : register=%s  score=%s%n", register, score);
         System.out.printf("   exemption  : %s%n", paid.jsonPath().getString("exemption.reason"));
         System.out.printf("   precedent  : %s%n", paid.jsonPath().getString("exemption.precedent"));
 
+        pause();
         beat(6, "ECONOMICS — value-add margin, machine to machine");
         System.out.println("   agent paid B 0.03 USDC; B paid A 0.01 USDC; B margin = 0.02 USDC");
         System.out.println("   No account, no email, no OAuth, no CAPTCHA. Discovered, then paid.");
@@ -109,6 +114,70 @@ class CascadeDemoRunner {
         System.out.println("=".repeat(72));
         System.out.printf("  BEAT %d · %s%n", n, title);
         System.out.println("-".repeat(72));
+    }
+
+    private static final long STEP_FALLBACK_MS = 4000;
+    private static java.io.BufferedReader terminal; // the controlling TTY, opened lazily
+    private static boolean noTerminal;              // set once we know there is none (CI)
+
+    /**
+     * Between-beat pacing for the screen recording. Opt-in, default off (so CI/tests still race).
+     * <ul>
+     *   <li>{@code -Ddemo.step=true} — wait for Enter before each beat. We read the <b>controlling
+     *       terminal device directly</b> ({@code CON} on Windows, {@code /dev/tty} on POSIX) rather
+     *       than {@link System#in}: Surefire does not wire the forked JVM's stdin to the console, but
+     *       the tty device is still reachable. If there is no terminal (CI), we don't block — we fall
+     *       back to a timed pause.</li>
+     *   <li>{@code -Ddemo.pauseMs=N} — sleep N ms between beats instead of waiting for Enter.</li>
+     * </ul>
+     */
+    private static void pause() {
+        if (Boolean.getBoolean("demo.step")) {
+            java.io.BufferedReader tty = terminal();
+            if (tty != null) {
+                System.out.print("   >> press Enter for the next beat ... ");
+                System.out.flush();
+                try {
+                    if (tty.readLine() != null) {
+                        System.out.println();
+                        return;
+                    }
+                    noTerminal = true; // EOF — no interactive terminal after all
+                } catch (Exception e) {
+                    noTerminal = true;
+                }
+            }
+            sleep(Long.getLong("demo.pauseMs", STEP_FALLBACK_MS)); // fallback when no tty
+            return;
+        }
+        sleep(Long.getLong("demo.pauseMs", 0L));
+    }
+
+    /** Opens the controlling terminal once; returns null (cached) when there is none. */
+    private static java.io.BufferedReader terminal() {
+        if (noTerminal) {
+            return null;
+        }
+        if (terminal == null) {
+            String path = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("win")
+                    ? "CON" : "/dev/tty";
+            try {
+                terminal = new java.io.BufferedReader(new java.io.FileReader(path));
+            } catch (Exception e) {
+                noTerminal = true;
+            }
+        }
+        return terminal;
+    }
+
+    private static void sleep(long ms) {
+        if (ms > 0) {
+            try {
+                Thread.sleep(ms);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     private static String unquote(String raw) {
