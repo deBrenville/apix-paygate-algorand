@@ -143,14 +143,45 @@
     <p class="kicker">The live demo — a cascade</p>
     <h2>Agent → humanity layer → neutral ledger</h2>
     <div class="panel">
-<pre class="mermaid">
-%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'14px','primaryColor':'#173140','primaryBorderColor':'#3fe0c5','primaryTextColor':'#eaf2f3','lineColor':'#3fe0c5','tertiaryColor':'#2a2314'}}}%%
-flowchart LR
-  AG["🤖 Agent"] -->|"① pay 0.03 · x402"| GW1["APIX Paygate&lt;br/&gt;(gateway)"]
-  GW1 -->|"forward"| B["B · humanity&lt;br/&gt;(private)"]
-  B -->|"② pay 0.01 · x402"| GW2["APIX Paygate&lt;br/&gt;(gateway)"]
-  GW2 -->|"forward"| A["A · ledger&lt;br/&gt;(private)"]
-</pre>
+<svg class="cascade" viewBox="0 0 1270 140" role="img"
+     aria-label="Agent pays the humanity layer B, which discovers and pays the neutral ledger A — two x402 hops through the gateway"
+     style="width:100%;height:auto;font-family:'Hanken Grotesk',system-ui,sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3fe0c5"/>
+    </marker>
+  </defs>
+  <g stroke="#3fe0c5" stroke-width="2" marker-end="url(#ah)">
+    <line x1="160" y1="72" x2="306" y2="72"/>
+    <line x1="460" y1="72" x2="556" y2="72"/>
+    <line x1="710" y1="72" x2="856" y2="72"/>
+    <line x1="1010" y1="72" x2="1106" y2="72"/>
+  </g>
+  <g text-anchor="middle" font-size="15">
+    <text x="233" y="34" fill="#3fe0c5">① pay 0.03 · x402</text>
+    <text x="510" y="34" fill="#7f9aa6">forward</text>
+    <text x="783" y="34" fill="#3fe0c5">② pay 0.01 · x402</text>
+    <text x="1060" y="34" fill="#7f9aa6">forward</text>
+  </g>
+  <g fill="#173140" stroke="#3fe0c5" stroke-width="1.5">
+    <rect x="10" y="44" width="150" height="56" rx="12"/>
+    <rect x="310" y="44" width="150" height="56" rx="12"/>
+    <rect x="560" y="44" width="150" height="56" rx="12"/>
+    <rect x="860" y="44" width="150" height="56" rx="12"/>
+    <rect x="1110" y="44" width="150" height="56" rx="12"/>
+  </g>
+  <g text-anchor="middle" fill="#eaf2f3" font-size="15">
+    <text x="85" y="77">🤖 Agent</text>
+    <text x="385" y="67">APIX Paygate</text>
+    <text x="385" y="88" fill="#7f9aa6" font-size="13">(gateway)</text>
+    <text x="635" y="67">B · humanity</text>
+    <text x="635" y="88" fill="#7f9aa6" font-size="13">(private)</text>
+    <text x="935" y="67">APIX Paygate</text>
+    <text x="935" y="88" fill="#7f9aa6" font-size="13">(gateway)</text>
+    <text x="1185" y="67">A · ledger</text>
+    <text x="1185" y="88" fill="#7f9aa6" font-size="13">(private)</text>
+  </g>
+</svg>
       </div>
     <ul class="cols2">
       <li>Agent <b>searches by capability</b> (HATEOAS — knows only its goal), pays B.</li>

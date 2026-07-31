@@ -10,10 +10,10 @@ Fill the `<<…>>` placeholders (personal / links) and paste the rest.
 **X (Twitter) project profile:** `<<https://x.com/…>>`  *(create a project handle if you don't have one)*
 
 **Project name:**
-> APIX x402 Onramp
+> APIX Paygate
 
 **Project one-liner:**
-> A gateway that makes any API discoverable *and* payable for AI agents in one config step —
+> APIX Paygate makes any API discoverable *and* payable for AI agents in one config step —
 > fusing APIX machine-native discovery with x402 pay-per-call on Algorand.
 
 **Project description** *(problem · users · how it uses x402 on Algorand):*
@@ -25,7 +25,7 @@ Fill the `<<…>>` placeholders (personal / links) and paste the rest.
 > **Users.** API/service providers who want to sell to agents without building payment or billing,
 > and the agents (and their developers) that need to discover and pay for services autonomously.
 >
-> **How it uses x402 on Algorand.** The Onramp is a reverse-proxy gateway. Wrap any existing API
+> **How it uses x402 on Algorand.** APIX Paygate is a reverse-proxy gateway. Wrap any existing API
 > with one config entry and it becomes (1) **discoverable** via an auto-published APIX manifest
 > (BSM) and (2) **payable** via **x402 on Algorand**, enforced at the gateway with **zero paywall
 > code** for the provider. Payment settles in USDC through the GoPlausible facilitator; the payment
