@@ -27,6 +27,25 @@ Agent ──x402 (0.03 USDC)──▶ Upstream B (BSF humanity layer)
   not blind judge.* B keeps a margin (0.03 in, 0.01 out).
 - **Attestation.** Compliance routes require a loggable, non-PII `?lawfulBasisAttested=true` (audit
   trail in access logs); the screened subject travels only in the request body.
+- **Discovery is real, HATEOAS-driven.** The agent knows only the registry **entry URL** and its
+  **goal capability**. It follows links: enter the root → follow `services-search` → search by
+  capability → follow the service's `endpoint`. No service URL or payment detail is hardcoded; the
+  payment terms (payTo/amount/asset) come from the service's `402`.
+
+## What's real vs. replayed
+
+The point Algorand cares about — **enforced payment** — is fully real and dynamic. The only replayed
+part is the *discovery lookup*:
+
+| Part | Real/dynamic? | How |
+|---|---|---|
+| **x402 enforcement** (402 when unpaid → verify/settle when paid) | **real, dynamic, on-chain** | `X402GatewayFilter` + GoPlausible facilitator + Algorand testnet (official USDC) |
+| **Two-hop cascade + margin** | **real, on-chain** | agent→B and B→A each settle on-chain |
+| **Discovery** (which service exists, its endpoint) | replayed | `DemoRegistryResource` serves responses **captured from a real apix-registry** (services registered at DEVELOPMENT stage) — so the demo needs no live registry/DB and never exposes APIX |
+
+Even without a wallet, `mvn test` runs `X402GatewayFilterTest`, which proves the 402 gate rejects
+unpaid calls and accepts paid ones (facilitator stubbed). The live cascade shows the real on-chain
+settlement. In production, discovery points at the live `api-index.org` — same shape, same links.
 
 ## Architecture
 

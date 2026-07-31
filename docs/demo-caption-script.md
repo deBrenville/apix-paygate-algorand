@@ -18,8 +18,8 @@ You (the presenter) only need: this repo, the funded testnet `.env`, and ~3 minu
 
 ## BEAT 1 · Discover (25s)
 > An autonomous agent needs a paid API. There's no human to sign up, enter a card, or click a CAPTCHA.
-> It reads the **APIX manifest** — machine-native discovery — and learns the capability, the price
-> (0.03 USDC), and that payment is **x402 on Algorand**. No docs, no portal.
+> It **searches the APIX registry by capability** — it knows only its goal, not a URL — and follows
+> the links to the matching service's endpoint. Machine-native discovery, no docs, no portal.
 
 ## BEAT 2 · The pay-gate (20s)
 > The agent calls the service. The gateway answers **HTTP 402 Payment Required** with the exact
