@@ -96,6 +96,7 @@ class CascadeDemoRunner {
         System.out.println("   agent paid B 0.03 USDC; B paid A 0.01 USDC; B margin = 0.02 USDC");
         System.out.println("   No account, no email, no OAuth, no CAPTCHA. Discovered, then paid.");
         System.out.println("=".repeat(72));
+        pause(); // hold the final screen until the presenter is done narrating
 
         // Hard gate — a broken take must fail RED, not narrate a green lie.
         // 200 + MATCH_EXEMPT is only reachable when BOTH x402 hops settled: the second settlement
