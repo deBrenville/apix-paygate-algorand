@@ -1,0 +1,172 @@
+<style>
+  :root{
+    --bg:#0a1218; --bg-2:#0e1a22; --surface:#12222c; --surface-2:#173140;
+    --line:rgba(170,210,220,.12); --line-2:rgba(170,210,220,.20);
+    --ink:#eaf2f3; --muted:#7f9aa6; --muted-2:#768c96;
+    --apix:#3fe0c5; --apix-deep:#1ea991; --warm:#ff8a5c; --gold:#f4c95d;
+    --apix-glow:rgba(63,224,197,.13);
+    --font-display:"Fraunces",Georgia,"Noto Serif",serif;
+    --font-ui:"Hanken Grotesk",system-ui,"Segoe UI","Noto Sans",sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,"Cascadia Code",monospace;
+    --r1:8px; --r2:14px; --r3:18px; --r-pill:999px;
+    --e2:0 18px 44px -22px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-snap-type:y proximity;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .deck{}
+  .slide{position:relative;min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(20px,3.4vw,44px);max-width:1080px;margin:0 auto;border-bottom:1px solid var(--line);}
+  .slide::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(58% 42% at 12% 16%,var(--apix-glow),transparent 70%);}
+  .slide>*{position:relative;z-index:1;}
+
+  .kicker{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--apix);margin:0 0 14px;}
+  h1{font-family:var(--font-display);font-weight:600;font-size:clamp(2.2rem,6vw,3.7rem);line-height:1.02;letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;}
+  h2{font-family:var(--font-display);font-weight:500;font-size:clamp(1.5rem,3.7vw,2.35rem);line-height:1.1;letter-spacing:-.012em;margin:0 0 16px;text-wrap:balance;}
+  .lede{font-family:var(--font-display);font-weight:400;font-size:clamp(1.05rem,2vw,1.35rem);line-height:1.4;color:var(--muted);max-width:36ch;margin:0;}
+  .big{font-size:clamp(.98rem,1.5vw,1.14rem);color:var(--muted);}
+  .big b{color:var(--ink);}
+  .spark{color:var(--apix);} .gold{color:var(--gold);}
+  p{max-width:60ch;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px;}
+  .chip{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.05em;padding:6px 12px;border-radius:var(--r-pill);
+    border:1px solid var(--apix-deep);color:var(--apix);background:rgba(63,224,197,.06);}
+
+  ul{margin:14px 0 0;padding:0;list-style:none;max-width:60ch;}
+  li{position:relative;padding-left:20px;margin:0 0 11px;font-size:clamp(.95rem,1.5vw,1.1rem);line-height:1.45;}
+  li:last-child{margin-bottom:0;}
+  li::before{content:"";position:absolute;left:0;top:.5em;width:7px;height:7px;border-radius:2px;background:var(--apix);transform:rotate(45deg);}
+  li.v::before{background:var(--gold);}
+  b{font-weight:700;color:var(--ink);}
+
+  .quote{font-family:var(--font-display);font-size:clamp(1.3rem,3vw,2rem);font-weight:500;line-height:1.15;letter-spacing:-.015em;max-width:18ch;margin:0;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:center;}
+  @media (max-width:780px){.grid2{grid-template-columns:1fr;}}
+
+  .panel{background:var(--bg-2);border:1px solid var(--line-2);border-radius:var(--r3);padding:18px 12px;overflow-x:auto;box-shadow:var(--e2);}
+  .panel .mermaid{display:flex;justify-content:center;}
+  .panel .mermaid svg{max-width:100%;height:auto;}
+
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px;}
+  @media (max-width:600px){.tiles{grid-template-columns:1fr;}}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:14px 16px;}
+  .tile .n{font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2rem);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+  .tile.a .n{color:var(--apix);} .tile.v .n{color:var(--gold);}
+  .tile .k{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.03em;color:var(--muted);margin-top:5px;}
+
+  .realtbl{width:100%;border-collapse:collapse;margin-top:14px;font-size:clamp(.88rem,1.4vw,1rem);}
+  .realtbl td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top;}
+  .realtbl td:last-child{text-align:right;white-space:nowrap;}
+  .realtbl .yes{color:var(--apix);font-weight:700;font-family:var(--font-mono);font-size:.82em;}
+  .realtbl .rep{color:var(--muted);font-family:var(--font-mono);font-size:.82em;white-space:normal;}
+
+  .pg{position:absolute;bottom:clamp(14px,2.6vw,32px);left:clamp(20px,3.4vw,44px);font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted-2);}
+  .foot{position:fixed;bottom:14px;right:18px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);opacity:.7;z-index:2;}
+  @media print{.deck{height:auto;overflow:visible;}.slide{min-height:100vh;page-break-after:always;border:0;}.foot{display:none;}}
+</style>
+
+<div class="deck">
+
+  <section class="slide">
+    <p class="kicker">WeAreDevelopers x402 Hackathon · Algorand</p>
+    <h1>APIX&nbsp;x402 Onramp</h1>
+    <p class="lede">Make any API <span class="spark">discoverable</span> <em>and</em> <span class="spark">payable</span> for AI agents — in one config step.</p>
+    <div class="chips">
+      <span class="chip">Live on Algorand testnet</span>
+      <span class="chip">Real USDC</span>
+      <span class="chip">Two on-chain hops</span>
+      <span class="chip">No human in the loop</span>
+    </div>
+    <p class="pg">01 / 06</p>
+  </section>
+
+  <section class="slide">
+    <p class="kicker">The problem</p>
+    <h2>Agents can't use paid APIs the way humans do</h2>
+    <ul>
+      <li>No one to <b>sign up</b>, enter a <b>card</b>, solve a <b>CAPTCHA</b>, or run <b>OAuth</b>.</li>
+      <li>And even once payment is solved — how does an agent <b>find</b> the service and its price?</li>
+      <li>Today a human onboards <b>every single API</b>. That doesn't scale to an agent economy.</li>
+    </ul>
+    <p class="pg">02 / 06</p>
+  </section>
+
+  <section class="slide">
+    <p class="kicker">The insight</p>
+    <div class="grid2">
+      <div>
+        <h2>Payment is solved.<br/>Discovery is the missing half.</h2>
+        <p class="big">x402 + the GoPlausible facilitator already let any endpoint charge in USDC — no accounts, no infrastructure.</p>
+      </div>
+      <div>
+        <p class="quote">The gap is <span class="spark">discovery</span> — and that is uniquely APIX's.</p>
+        <p class="big" style="margin-top:16px">Fuse the two into one zero-code step: <b>discoverable <span class="spark">and</span> payable</b> — the half Algorand's ecosystem lacks.</p>
+      </div>
+    </div>
+    <p class="pg">03 / 06</p>
+  </section>
+
+  <section class="slide">
+    <p class="kicker">The product</p>
+    <h2>One config entry → discoverable + payable</h2>
+    <ul>
+      <li>The Onramp is a <b>reverse-proxy gateway</b> — point it at any existing API…</li>
+      <li>…and it becomes <b>discoverable</b> (auto-registered in the APIX index, HATEOAS)…</li>
+      <li>…and <b>payable</b> (x402 on Algorand enforced at the gateway) — <b>zero paywall code</b>.</li>
+      <li>And it <b>composes</b>: services discover and pay services — <b>paid, discoverable chains</b>.</li>
+    </ul>
+    <p class="pg">04 / 06</p>
+  </section>
+
+  <section class="slide">
+    <p class="kicker">The live demo — a cascade</p>
+    <h2>Agent → humanity layer → neutral ledger</h2>
+    <div class="grid2">
+      <div class="panel">
+<pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-sans-serif, system-ui','fontSize':'14px','primaryColor':'#173140','primaryBorderColor':'#3fe0c5','primaryTextColor':'#eaf2f3','lineColor':'#3fe0c5','tertiaryColor':'#2a2314'}}}%%
+flowchart TD
+  AG["🤖 Agent"] -->|"0.03 USDC"| B["B · humanity layer"]
+  B -->|"0.01 USDC"| A["A · neutral ledger"]
+  A -->|"match-proof"| B
+  B -->|"MATCH_EXEMPT"| AG
+</pre>
+      </div>
+      <div>
+        <ul>
+          <li>Agent <b>searches by capability</b> (HATEOAS — knows only its goal), pays B.</li>
+          <li>B <b>discovers and pays A</b> — a <b>second on-chain hop</b>.</li>
+          <li>A returns every match as <b>evidence + score</b>. Stateless.</li>
+          <li class="v">B applies the <b>pro-humanity filter</b>: OFAC-only + humanity-serving → <b class="gold">MATCH_EXEMPT</b>, provenance kept.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="pg">05 / 06</p>
+  </section>
+
+  <section class="slide">
+    <p class="kicker">Values · economics · what's real</p>
+    <h2>Ledger, not blind judge — and it's real</h2>
+    <div class="tiles">
+      <div class="tile a"><div class="n">0.03</div><div class="k">USDC — agent pays B</div></div>
+      <div class="tile v"><div class="n">0.02</div><div class="k">USDC — B's margin</div></div>
+      <div class="tile"><div class="n">0.01</div><div class="k">USDC — B pays ledger A</div></div>
+    </div>
+    <ul style="margin-top:16px">
+      <li>Neutral ledger + a <b>separate</b> pro-humanity layer. <b>Stateless</b> — the caller keeps the proof.</li>
+      <li>Any provider joins with <b>one config entry</b>, zero upfront. <b>Dogfooded</b> against a real APIX registry.</li>
+    </ul>
+    <table class="realtbl">
+      <tr><td><b>x402 enforcement</b> — 402 → verify/settle</td><td class="yes">real · on-chain</td></tr>
+      <tr><td><b>Two-hop cascade + margin</b></td><td class="yes">real · official USDC</td></tr>
+      <tr><td><b>Discovery lookup</b> — which service exists</td><td class="rep">captured replay · self-contained</td></tr>
+    </table>
+    <p class="big" style="margin-top:16px"><b>Zero-code discoverable <span class="spark">and</span> payable.</b> Runs today on testnet; mainnet is a config flip.</p>
+    <p class="pg">06 / 06</p>
+  </section>
+
+</div>
+<div class="foot">APIX x402 Onramp · BSF</div>
