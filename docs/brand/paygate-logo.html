@@ -1,0 +1,98 @@
+<style>
+  :root{
+    --bg:#0a1218; --bg-2:#0e1a22; --surface:#12222c; --line:rgba(170,210,220,.14);
+    --ink:#eaf2f3; --muted:#7f9aa6; --apix:#3fe0c5; --apix-deep:#1ea991;
+    --font-display:"Fraunces",Georgia,serif; --font-ui:"Hanken Grotesk",system-ui,sans-serif; --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:clamp(28px,5vw,64px);}
+  .kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--apix);margin:0 0 12px;}
+  h1{font-family:var(--font-display);font-weight:600;font-size:clamp(1.9rem,4.4vw,2.8rem);letter-spacing:-.02em;margin:0 0 12px;}
+  .lede{font-family:var(--font-display);font-weight:400;color:var(--muted);font-size:clamp(1.05rem,2vw,1.3rem);max-width:52ch;margin:0 0 40px;}
+  section{margin-top:44px;}
+  h2{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 18px;font-weight:400;}
+  .row{display:flex;flex-wrap:wrap;gap:22px;align-items:center;}
+  .card{background:var(--bg-2);border:1px solid var(--line);border-radius:20px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .cap{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+  /* app-icon tile */
+  .tile{width:132px;height:132px;border-radius:30px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 20px 50px -22px #000;}
+  .tile.spark{box-shadow:0 0 0 1px var(--apix-deep) inset, 0 20px 50px -22px #000;}
+  /* lockup */
+  .lockup{display:flex;align-items:center;gap:18px;}
+  .lockup .mark{width:68px;height:68px;}
+  .word{display:flex;flex-direction:column;line-height:1;}
+  .word .a{font-family:var(--font-display);font-weight:600;font-size:34px;letter-spacing:-.01em;}
+  .word .p{font-family:var(--font-mono);font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:var(--apix);margin-top:7px;}
+  .lockup.horiz{flex-direction:row;}
+  .lockup.horiz .word .p{margin-top:5px;}
+  .sizes{display:flex;align-items:flex-end;gap:26px;}
+  .sizes .s{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .onlight{background:#eaf2f3;color:#0a1218;border-radius:20px;padding:26px;}
+  .note{color:var(--muted);max-width:60ch;margin-top:10px;font-size:.95rem;}
+  .note b{color:var(--ink);}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- APIX Paygate mark: orbit (family) + gate brackets + spark passing through -->
+  <symbol id="paygate" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="37" fill="none" stroke="currentColor" stroke-width="3" opacity=".38"/>
+    <path d="M43 26 L27 50 L43 74" fill="none" stroke="#3fe0c5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M57 26 L73 50 L57 74" fill="none" stroke="#3fe0c5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M50 39 L61 50 L50 61 L39 50 Z" fill="#3fe0c5"/>
+  </symbol>
+</svg>
+
+<div class="wrap">
+  <p class="kicker">APIX · Product family</p>
+  <h1>APIX Paygate — logo proposal</h1>
+  <p class="lede">Built on the APIX mark (orbit + rhombus spark). The rhombus opens into a <b style="color:var(--ink)">gate</b> — two brackets a <b style="color:var(--ink)">value spark</b> passes through. Family DNA kept: mint on petrol, the orbit, the spark.</p>
+
+  <section>
+    <h2>The mark</h2>
+    <div class="row">
+      <div class="card">
+        <div class="tile"><svg class="mark" style="width:88px;height:88px;color:var(--ink)"><use href="#paygate"/></svg></div>
+        <span class="cap">app icon · petrol</span>
+      </div>
+      <div class="card">
+        <svg style="width:104px;height:104px;color:var(--ink)"><use href="#paygate"/></svg>
+        <span class="cap">standalone</span>
+      </div>
+      <div class="card onlight">
+        <svg style="width:104px;height:104px;color:#0a1218"><use href="#paygate"/></svg>
+        <span class="cap" style="color:#5c7682">on light</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Wordmark lockup</h2>
+    <div class="row">
+      <div class="card" style="align-items:flex-start">
+        <div class="lockup horiz">
+          <svg class="mark" style="color:var(--ink)"><use href="#paygate"/></svg>
+          <div class="word"><span class="a">APIX</span><span class="p">Paygate</span></div>
+        </div>
+        <span class="cap">horizontal</span>
+      </div>
+      <div class="card">
+        <div class="lockup">
+          <svg class="mark" style="color:var(--ink)"><use href="#paygate"/></svg>
+          <div class="word" style="align-items:center"><span class="a">APIX</span><span class="p">Paygate</span></div>
+        </div>
+        <span class="cap">stacked</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sizes / favicon</h2>
+    <div class="sizes">
+      <div class="s"><div class="tile" style="width:64px;height:64px;border-radius:16px"><svg style="width:44px;height:44px;color:var(--ink)"><use href="#paygate"/></svg></div><span class="cap">64</span></div>
+      <div class="s"><div class="tile" style="width:40px;height:40px;border-radius:10px"><svg style="width:28px;height:28px;color:var(--ink)"><use href="#paygate"/></svg></div><span class="cap">40</span></div>
+      <div class="s"><div class="tile" style="width:24px;height:24px;border-radius:6px"><svg style="width:18px;height:18px;color:var(--ink)"><use href="#paygate"/></svg></div><span class="cap">24</span></div>
+    </div>
+    <p class="note">Reads at 24px (favicon) and scales up cleanly — the orbit stays faint, the gate + spark stay crisp. <b>This is one concept</b>; tell me what to push — e.g. gate more literal (posts/lintel), spark as a coin, or the brackets tighter — and I'll iterate.</p>
+  </section>
+</div>

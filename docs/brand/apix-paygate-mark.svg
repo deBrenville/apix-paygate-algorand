@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="APIX Paygate">
+  <!-- APIX family: orbit (light on dark) -->
+  <circle cx="50" cy="50" r="37" fill="none" stroke="#eaf2f3" stroke-width="3" opacity=".38"/>
+  <!-- gate brackets (the rhombus opened into a portal) -->
+  <path d="M43 26 L27 50 L43 74" fill="none" stroke="#3fe0c5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M57 26 L73 50 L57 74" fill="none" stroke="#3fe0c5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- the value spark passing through -->
+  <path d="M50 39 L61 50 L50 61 L39 50 Z" fill="#3fe0c5"/>
+</svg>
