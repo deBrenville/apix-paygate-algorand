@@ -74,7 +74,13 @@
 
   .pg{position:absolute;bottom:clamp(14px,2.6vw,32px);left:clamp(20px,3.4vw,44px);font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted-2);}
   .foot{position:fixed;bottom:14px;right:18px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);opacity:.7;z-index:2;}
-  @media print{.deck{height:auto;overflow:visible;}.slide{min-height:100vh;page-break-after:always;border:0;}.foot{display:none;}}
+  @media print{
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+    html,body{background:var(--bg) !important;}
+    .deck{height:auto;overflow:visible;}
+    .slide{min-height:100vh;page-break-after:always;border:0;background:var(--bg);}
+    .foot{display:none;}
+  }
 </style>
 
 <div class="deck">
