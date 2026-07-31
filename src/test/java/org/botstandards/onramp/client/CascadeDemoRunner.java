@@ -2,6 +2,7 @@ package org.botstandards.onramp.client;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.algorand.algosdk.account.Account;
 import com.algorand.algosdk.v2.client.common.AlgodClient;
@@ -11,20 +12,26 @@ import io.quarkus.test.junit.TestProfile;
 import io.restassured.response.Response;
 import jakarta.inject.Inject;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import org.botstandards.onramp.discovery.ApixDiscoveryClient;
 import org.botstandards.onramp.x402.X402AvmClient;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Narrated live demo for the video (run with -Dx402.live=true). The agent DISCOVERS the service via
- * the real APIX registry search (by capability), then hits the DYNAMIC x402 gate: a real 402 when
- * unpaid, a real on-chain settlement when paid. Prints six beats; the server log shows both hops.
+ * Narrated live demo for the video. The agent DISCOVERS the service via the real APIX registry search
+ * (by capability), then hits the DYNAMIC x402 gate: a real 402 when unpaid, a real on-chain settlement
+ * when paid, cascading into a second hop (B → A).
  *
- * <pre>mvn -o test -Dtest=CascadeDemoRunner -Dx402.live=true</pre>
+ * <p>Each beat is an <b>independently runnable</b> test so you can record and narrate one at a time,
+ * then run {@link #run()} as the finale — proof the whole cascade runs autonomously, no interaction:
+ *
+ * <pre>
+ * mvn -o test "-Dtest=CascadeDemoRunner#discover"                        # BEAT 1  (local)
+ * mvn -o test "-Dtest=CascadeDemoRunner#payGate"                         # BEAT 2  (local)
+ * mvn -o test "-Dtest=CascadeDemoRunner#settle"   "-Dx402.live=true"     # BEATS 3-6 (on-chain)
+ * mvn -o test "-Dtest=CascadeDemoRunner#run"      "-Dx402.live=true"     # ALL, autonomous
+ * </pre>
  */
 @QuarkusTest
 @TestProfile(CascadeLiveProfile.class)
@@ -41,27 +48,65 @@ class CascadeDemoRunner {
     @Inject
     ApixDiscoveryClient discovery;
 
+    // ---- individually runnable beats (narrate each) --------------------------------------------
+
+    /** BEAT 1 — discovery only. No chain, no payment. */
+    @Test
+    void discover() {
+        beatDiscover();
+    }
+
+    /** BEAT 2 — the dynamic 402 only. No chain, no payment. */
+    @Test
+    void payGate() {
+        beatPayGate(resolveEndpoint());
+    }
+
+    /** BEATS 3-6 — pay once; both hops settle on-chain and the humanity filter returns its verdict. */
+    @Test
+    void settle() throws Exception {
+        requireLive();
+        beatSettle(resolveEndpoint());
+    }
+
+    // ---- the finale: everything, no interaction ------------------------------------------------
+
+    /** All beats end to end — the "it runs by itself" take. */
     @Test
     void run() throws Exception {
-        Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "narrated demo — run with -Dx402.live=true");
-        Assumptions.assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_PAYER_MNEMONIC");
+        requireLive();
+        String endpoint = beatDiscover();
+        beatPayGate(endpoint);
+        beatSettle(endpoint);
+    }
 
+    // ---- beats (shared by the single-beat tests and the full run) ------------------------------
+
+    private String beatDiscover() {
         beat(1, "DISCOVER — the agent searches the APIX registry by capability (no hardcoded URL)");
         System.out.printf("   search     : capability=%s%n", CAPABILITY);
-        String endpoint = discovery.endpointByCapability(CAPABILITY);
+        String endpoint = resolveEndpoint();
         System.out.printf("   found      : %s%n", endpoint);
+        return endpoint;
+    }
 
-        pause();
+    private void beatPayGate(String endpoint) {
         beat(2, "PAY-GATE (dynamic) — the agent calls without paying and gets a real 402");
-        Response unpaid = given().contentType("application/json")
-                .body(body()).post(endpoint + "?lawfulBasisAttested=true");
-        String payTo = unpaid.jsonPath().getString("accepts[0].payTo");
-        long amount = Long.parseLong(unpaid.jsonPath().getString("accepts[0].amount"));
-        long asset = Long.parseLong(unpaid.jsonPath().getString("accepts[0].asset"));
-        System.out.printf(Locale.US, "   HTTP %d — %.2f USDC required (asset %d), payTo %s%n",
-                unpaid.statusCode(), amount / 1_000_000.0, asset, payTo);
+        Response unpaid = unpaidCall(endpoint);
+        System.out.printf(Locale.US, "   HTTP %d — %.2f USDC required (asset %s), payTo %s%n",
+                unpaid.statusCode(),
+                Long.parseLong(unpaid.jsonPath().getString("accepts[0].amount")) / 1_000_000.0,
+                unpaid.jsonPath().getString("accepts[0].asset"),
+                unpaid.jsonPath().getString("accepts[0].payTo"));
+        assertEquals(402, unpaid.statusCode(), "unpaid call must be gated with 402");
+    }
 
-        pause();
+    private void beatSettle(String endpoint) throws Exception {
+        Response terms = unpaidCall(endpoint); // the 402 carries payTo/amount/asset
+        String payTo = terms.jsonPath().getString("accepts[0].payTo");
+        long amount = Long.parseLong(terms.jsonPath().getString("accepts[0].amount"));
+        long asset = Long.parseLong(terms.jsonPath().getString("accepts[0].asset"));
+
         beat(3, "SETTLE — the agent signs a USDC payment on Algorand for exactly those terms");
         Account agent = new Account(unquote(agentMnemonic.get()));
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");
@@ -80,23 +125,19 @@ class CascadeDemoRunner {
             System.out.printf("   HTTP %d — settlement did NOT complete (see the errors above)%n", status);
         }
 
-        pause();
         beat(4, "CASCADE — B discovered and paid the neutral ledger A over x402 (second hop)");
         System.out.println("   (server log above: a second 'x402 settled' line for the B->A hop)");
 
-        pause();
         beat(5, "RESULT — neutral ledger + BSF humanity filter");
         System.out.printf("   outcome    : %s%n", outcome);
         System.out.printf("   provenance : register=%s  score=%s%n", register, score);
         System.out.printf("   exemption  : %s%n", paid.jsonPath().getString("exemption.reason"));
         System.out.printf("   precedent  : %s%n", paid.jsonPath().getString("exemption.precedent"));
 
-        pause();
         beat(6, "ECONOMICS — value-add margin, machine to machine");
         System.out.println("   agent paid B 0.03 USDC; B paid A 0.01 USDC; B margin = 0.02 USDC");
         System.out.println("   No account, no email, no OAuth, no CAPTCHA. Discovered, then paid.");
         System.out.println("=".repeat(72));
-        pause(); // hold the final screen until the presenter is done narrating
 
         // Hard gate — a broken take must fail RED, not narrate a green lie.
         // 200 + MATCH_EXEMPT is only reachable when BOTH x402 hops settled: the second settlement
@@ -104,6 +145,21 @@ class CascadeDemoRunner {
         assertEquals(200, status, "paid call did not return 200 — a payment hop failed to settle");
         assertEquals("MATCH_EXEMPT", outcome, "cascade did not complete — A unreachable or policy not applied");
         assertEquals("OFAC", register, "provenance lost — expected the OFAC match from neutral ledger A");
+    }
+
+    // ---- helpers -------------------------------------------------------------------------------
+
+    private void requireLive() {
+        assumeTrue(Boolean.getBoolean("x402.live"), "on-chain beat — run with -Dx402.live=true");
+        assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_PAYER_MNEMONIC");
+    }
+
+    private String resolveEndpoint() {
+        return discovery.endpointByCapability(CAPABILITY);
+    }
+
+    private Response unpaidCall(String endpoint) {
+        return given().contentType("application/json").body(body()).post(endpoint + "?lawfulBasisAttested=true");
     }
 
     private static String body() {
@@ -115,70 +171,6 @@ class CascadeDemoRunner {
         System.out.println("=".repeat(72));
         System.out.printf("  BEAT %d · %s%n", n, title);
         System.out.println("-".repeat(72));
-    }
-
-    private static final long STEP_FALLBACK_MS = 4000;
-    private static java.io.BufferedReader terminal; // the controlling TTY, opened lazily
-    private static boolean noTerminal;              // set once we know there is none (CI)
-
-    /**
-     * Between-beat pacing for the screen recording. Opt-in, default off (so CI/tests still race).
-     * <ul>
-     *   <li>{@code -Ddemo.step=true} — wait for Enter before each beat. We read the <b>controlling
-     *       terminal device directly</b> ({@code CON} on Windows, {@code /dev/tty} on POSIX) rather
-     *       than {@link System#in}: Surefire does not wire the forked JVM's stdin to the console, but
-     *       the tty device is still reachable. If there is no terminal (CI), we don't block — we fall
-     *       back to a timed pause.</li>
-     *   <li>{@code -Ddemo.pauseMs=N} — sleep N ms between beats instead of waiting for Enter.</li>
-     * </ul>
-     */
-    private static void pause() {
-        if (Boolean.getBoolean("demo.step")) {
-            java.io.BufferedReader tty = terminal();
-            if (tty != null) {
-                System.out.print("   >> press Enter for the next beat ... ");
-                System.out.flush();
-                try {
-                    if (tty.readLine() != null) {
-                        System.out.println();
-                        return;
-                    }
-                    noTerminal = true; // EOF — no interactive terminal after all
-                } catch (Exception e) {
-                    noTerminal = true;
-                }
-            }
-            sleep(Long.getLong("demo.pauseMs", STEP_FALLBACK_MS)); // fallback when no tty
-            return;
-        }
-        sleep(Long.getLong("demo.pauseMs", 0L));
-    }
-
-    /** Opens the controlling terminal once; returns null (cached) when there is none. */
-    private static java.io.BufferedReader terminal() {
-        if (noTerminal) {
-            return null;
-        }
-        if (terminal == null) {
-            String path = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("win")
-                    ? "CON" : "/dev/tty";
-            try {
-                terminal = new java.io.BufferedReader(new java.io.FileReader(path));
-            } catch (Exception e) {
-                noTerminal = true;
-            }
-        }
-        return terminal;
-    }
-
-    private static void sleep(long ms) {
-        if (ms > 0) {
-            try {
-                Thread.sleep(ms);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
     }
 
     private static String unquote(String raw) {
