@@ -59,13 +59,6 @@
             <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
 
-        <!-- The REAL APIX sanctions matcher (plain POJO library, no Quarkus dep) -->
-        <dependency>
-            <groupId>org.botstandards</groupId>
-            <artifactId>apix-verification</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
         <!-- Algorand Java SDK: build/sign the x402 payment transaction group -->
         <dependency>
             <groupId>com.algorand</groupId>

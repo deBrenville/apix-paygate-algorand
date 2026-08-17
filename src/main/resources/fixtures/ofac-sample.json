@@ -1,5 +1,0 @@
-[
-  { "id": "ofac-0001", "type": "INDIVIDUAL", "primaryName": "Viktor Malenkov", "aliases": [], "country": "RU", "lei": null },
-  { "id": "ofac-0002", "type": "INDIVIDUAL", "primaryName": "Amara Okonkwo", "aliases": [], "country": "NG", "lei": null },
-  { "id": "ofac-0003", "type": "INDIVIDUAL", "primaryName": "Dmitri Volkov", "aliases": [], "country": "RU", "lei": null }
-]
