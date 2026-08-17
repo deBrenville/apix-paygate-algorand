@@ -42,7 +42,7 @@ class CascadeDemoRunner {
     private static final String SUBJECT = "hello"; // demo content is irrelevant — the cascade is the point
     private static final String COUNTRY = "";
 
-    @ConfigProperty(name = "onramp.payer-mnemonic")
+    @ConfigProperty(name = "onramp.agent.sender-mnemonic")
     Optional<String> agentMnemonic;
 
     @Inject
@@ -154,7 +154,7 @@ class CascadeDemoRunner {
 
     private void requireLive() {
         assumeTrue(Boolean.getBoolean("x402.live"), "on-chain beat — run with -Dx402.live=true");
-        assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_PAYER_MNEMONIC");
+        assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_AGENT_SENDER_MNEMONIC");
     }
 
     private String resolveEndpoint() {

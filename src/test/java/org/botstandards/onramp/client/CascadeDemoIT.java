@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 @TestProfile(CascadeLiveProfile.class)
 class CascadeDemoIT {
 
-    @ConfigProperty(name = "onramp.payer-mnemonic")
+    @ConfigProperty(name = "onramp.agent.sender-mnemonic")
     Optional<String> agentMnemonic;
 
     @Inject
@@ -40,7 +40,7 @@ class CascadeDemoIT {
     @Test
     void cascadeReturnsHelloWorldBNestingHelloWorldA() throws Exception {
         Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "live cascade — run with -Dx402.live=true");
-        Assumptions.assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_PAYER_MNEMONIC");
+        Assumptions.assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_AGENT_SENDER_MNEMONIC");
 
         Account agent = new Account(unquote(agentMnemonic.get()));
         String outerEndpoint = discovery.endpointByCapability("compliance.sanctions.screen.humanity");

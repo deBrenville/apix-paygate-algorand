@@ -14,9 +14,11 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Setup + diagnostics (run with -Dtest=OptInHelperTest): for each .env signing account (agent,
- * humanity B) prints its address, ALGO balance, and USDC opt-in/balance, and opts it into the
- * USDC testnet ASA when it has ALGO but is not yet opted in. Mnemonics are never printed.
+ * Setup + diagnostics (run with -Dtest=OptInHelperTest): for each .env account (Agent A, Service B,
+ * and — via the opt-in-only slot — Service C) prints its address, ALGO balance, and USDC opt-in/
+ * balance, and opts it into the USDC testnet ASA when it has ALGO but is not yet opted in. Service C
+ * is a pure receiver in the running server (no mnemonic there); its mnemonic is supplied ONLY for
+ * this one-off opt-in via ONRAMP_SERVICE_C_OPTIN_MNEMONIC. Mnemonics are never printed.
  */
 @QuarkusTest
 class OptInHelperTest {
@@ -24,19 +26,24 @@ class OptInHelperTest {
     private static final String ALGOD = "https://testnet-api.algonode.cloud";
     private static final long USDC = 10_458_941L;
 
-    @ConfigProperty(name = "onramp.payer-mnemonic")
+    @ConfigProperty(name = "onramp.agent.sender-mnemonic")
     Optional<String> agentMnemonic;
 
-    @ConfigProperty(name = "onramp.b-payer-mnemonic")
+    @ConfigProperty(name = "onramp.service-b.sender-mnemonic")
     Optional<String> bMnemonic;
+
+    /** Opt-in-only: Service C signs nothing in the server, so its mnemonic lives here just for setup. */
+    @ConfigProperty(name = "onramp.service-c.optin-mnemonic")
+    Optional<String> cMnemonic;
 
     @Test
     void statusAndOptIn() {
         Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "on-chain setup — run with -Dx402.live=true");
-        Assumptions.assumeTrue(agentMnemonic.isPresent(), "set ONRAMP_PAYER_MNEMONIC");
+        Assumptions.assumeTrue(agentMnemonic.isPresent(), "set ONRAMP_AGENT_SENDER_MNEMONIC");
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");
         handle(algod, mnemonicAccount(agentMnemonic.get()), "agent");
         bMnemonic.ifPresent(m -> handle(algod, mnemonicAccount(m), "B"));
+        cMnemonic.ifPresent(m -> handle(algod, mnemonicAccount(m), "C"));
     }
 
     private void handle(AlgodClient algod, Account account, String label) {

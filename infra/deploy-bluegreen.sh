@@ -8,7 +8,7 @@
 #
 # Run on the VPS from a checkout of this repo:  bash infra/deploy-bluegreen.sh
 # Requires: Docker; the apix-registry stack up (so the external caddy network exists); a secret file
-# at /opt/onramp/.env (or ~/onramp/.env + export ONRAMP_ENV_FILE) containing ONRAMP_B_PAYER_MNEMONIC
+# at /opt/onramp/.env (or ~/onramp/.env + export ONRAMP_ENV_FILE) containing ONRAMP_SERVICE_B_SENDER_MNEMONIC
 # (the server-side payer for the inner cascade hop). See .env.template for the full wallet map.
 
 set -euo pipefail
@@ -47,9 +47,9 @@ log "run started $(date -u +%FT%TZ) — commit $(git -C "$REPO_ROOT" rev-parse -
 
 # ── 0. Pre-flight: the boot-required payer mnemonic must be present AND non-empty ─
 # The cascade's inner hop (outer service -> inner service) is settled server-side by
-# ONRAMP_B_PAYER_MNEMONIC. Without it the second hop throws at call time, so the demo is dead.
-if [ ! -f "$ENV_FILE" ] || ! grep -qE '^ONRAMP_B_PAYER_MNEMONIC=.+' "$ENV_FILE"; then
-    log "ERROR: $ENV_FILE missing or ONRAMP_B_PAYER_MNEMONIC is absent/empty."
+# ONRAMP_SERVICE_B_SENDER_MNEMONIC. Without it the second hop throws at call time, so the demo is dead.
+if [ ! -f "$ENV_FILE" ] || ! grep -qE '^ONRAMP_SERVICE_B_SENDER_MNEMONIC=.+' "$ENV_FILE"; then
+    log "ERROR: $ENV_FILE missing or ONRAMP_SERVICE_B_SENDER_MNEMONIC is absent/empty."
     log "It is the server-side payer that settles the inner cascade hop (the outer service paying the inner)."
     log "See .env.template for the wallet map (ONRAMP_B_* = the OUTER service = your SERVICE A wallet)."
     exit 1

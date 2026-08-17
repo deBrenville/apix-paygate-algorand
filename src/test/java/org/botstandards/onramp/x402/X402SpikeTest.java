@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
  * SPIKE (Task 2 GATE): proves a pure-Java x402 client can produce a native-ALGO payment the
  * live GoPlausible testnet facilitator accepts (verify) and settles on-chain.
  *
- * <p>Skips unless {@code ONRAMP_PAYER_MNEMONIC} + {@code ONRAMP_PAYTO_ADDRESS} are present
+ * <p>Skips unless {@code ONRAMP_AGENT_SENDER_MNEMONIC} + {@code ONRAMP_PAYTO_ADDRESS} are present
  * (loaded from the git-ignored {@code .env}). The mnemonic is never printed.
  */
 @QuarkusTest
@@ -36,7 +36,7 @@ class X402SpikeTest {
     @org.eclipse.microprofile.config.inject.ConfigProperty(name = "onramp.price-asset-id")
     String priceAssetId;
 
-    @ConfigProperty(name = "onramp.payer-mnemonic")
+    @ConfigProperty(name = "onramp.agent.sender-mnemonic")
     Optional<String> payerMnemonic;
 
     @ConfigProperty(name = "onramp.payto-address")
@@ -51,7 +51,7 @@ class X402SpikeTest {
                 "live on-chain settlement — run with -Dx402.live=true");
         Assumptions.assumeTrue(
                 payerMnemonic.isPresent() && payToAddress.isPresent(),
-                "Set ONRAMP_PAYER_MNEMONIC + ONRAMP_PAYTO_ADDRESS in .env to run the spike");
+                "Set ONRAMP_AGENT_SENDER_MNEMONIC + ONRAMP_PAYTO_ADDRESS in .env to run the spike");
 
         Account payer = new Account(unquote(payerMnemonic.get()));
         String payTo = payer.getAddress().toString(); // self-pay for the spike

@@ -10,7 +10,7 @@ import com.algorand.algosdk.account.Account;
  * <pre>mvn -q compile exec:java -Dexec.mainClass=org.botstandards.onramp.tools.GenerateTestnetAccount</pre>
  *
  * <p>Then paste the address into the testnet dispenser to fund it, and put the mnemonic into a
- * git-ignored {@code .env} as {@code ONRAMP_PAYER_MNEMONIC}. Never commit it.
+ * git-ignored {@code .env} as {@code ONRAMP_AGENT_SENDER_MNEMONIC}. Never commit it.
  */
 public final class GenerateTestnetAccount {
 
@@ -29,7 +29,7 @@ public final class GenerateTestnetAccount {
         System.out.println("Next:");
         System.out.println("  1) Fund this address with test ALGO: https://bank.testnet.algorand.network/");
         System.out.println("  2) Put into a git-ignored .env file:");
-        System.out.println("       ONRAMP_PAYER_MNEMONIC=\"" + "<the 25 words above>" + "\"");
+        System.out.println("       ONRAMP_AGENT_SENDER_MNEMONIC=\"" + "<the 25 words above>" + "\"");
         System.out.println("       ONRAMP_PAYTO_ADDRESS=\"" + address + "\"");
         System.out.println("     (payTo can be this same address — it pays itself in the demo.)");
         System.out.println();

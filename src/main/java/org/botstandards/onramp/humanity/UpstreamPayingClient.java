@@ -6,17 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Map;
-import java.util.Optional;
 import org.botstandards.onramp.discovery.ApixDiscoveryClient;
+import org.botstandards.onramp.gateway.OnrampConfig;
 import org.botstandards.onramp.x402.X402PayingCaller;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * Upstream B's outbound leg — the server-side cascade payer. It discovers the inner service (A) via
  * the real APIX registry search (by capability), then pays it over x402: the payment terms come
  * entirely from A's 402 response, so B never hardcodes A's URL or its payment address. This is the
  * "server-side chaining" the demo showcases — one gated service consuming <em>and paying</em> another
- * in the background, on its own wallet ({@code ONRAMP_B_PAYER_MNEMONIC}).
+ * in the background, on its own wallet ({@code ONRAMP_SERVICE_B_SENDER_MNEMONIC}).
  */
 @ApplicationScoped
 public class UpstreamPayingClient {
@@ -30,8 +29,8 @@ public class UpstreamPayingClient {
     @Inject
     X402PayingCaller payingCaller;
 
-    @ConfigProperty(name = "onramp.b-payer-mnemonic")
-    Optional<String> bPayerMnemonic;
+    @Inject
+    OnrampConfig config;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -41,9 +40,9 @@ public class UpstreamPayingClient {
      * cascade proves is that this hop is a real, gated, on-chain-settled call B makes on its own.
      */
     public Map<String, Object> callInner() {
-        String mnemonic = bPayerMnemonic
+        String mnemonic = config.serviceB().senderMnemonic()
                 .map(UpstreamPayingClient::unquote)
-                .orElseThrow(() -> new IllegalStateException("ONRAMP_B_PAYER_MNEMONIC not set"));
+                .orElseThrow(() -> new IllegalStateException("ONRAMP_SERVICE_B_SENDER_MNEMONIC not set"));
         try {
             Account payer = new Account(mnemonic);
             String innerEndpoint = discovery.endpointByCapability(INNER_CAPABILITY);

@@ -25,10 +25,10 @@ class MintDemoAssetTest {
     private static final long TOTAL = 1_000_000_000_000L;   // 1,000,000 dUSD at 6 decimals
     private static final long TO_B = 100_000_000L;           // 100 dUSD to B
 
-    @ConfigProperty(name = "onramp.payer-mnemonic")
+    @ConfigProperty(name = "onramp.agent.sender-mnemonic")
     Optional<String> agentMnemonic;
 
-    @ConfigProperty(name = "onramp.b-payer-mnemonic")
+    @ConfigProperty(name = "onramp.service-b.sender-mnemonic")
     Optional<String> bMnemonic;
 
     @Test

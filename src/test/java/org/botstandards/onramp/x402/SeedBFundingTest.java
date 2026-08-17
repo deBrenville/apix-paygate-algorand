@@ -25,17 +25,17 @@ class SeedBFundingTest {
     private static final long USDC = 10_458_941L;
     private static final long SEED_MICRO_ALGOS = 4_000_000L; // 4 ALGO
 
-    @ConfigProperty(name = "onramp.payer-mnemonic")
+    @ConfigProperty(name = "onramp.agent.sender-mnemonic")
     Optional<String> agentMnemonic;
 
-    @ConfigProperty(name = "onramp.b-payer-mnemonic")
+    @ConfigProperty(name = "onramp.service-b.sender-mnemonic")
     Optional<String> bMnemonic;
 
     @Test
     void seedAndOptInB() throws Exception {
         Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "on-chain setup — run with -Dx402.live=true");
         Assumptions.assumeTrue(agentMnemonic.isPresent() && bMnemonic.isPresent(),
-                "need ONRAMP_PAYER_MNEMONIC + ONRAMP_B_PAYER_MNEMONIC");
+                "need ONRAMP_AGENT_SENDER_MNEMONIC + ONRAMP_SERVICE_B_SENDER_MNEMONIC");
         AlgodClient algod = new AlgodClient(ALGOD, 443, "");
         Account agent = account(agentMnemonic.get());
         Account b = account(bMnemonic.get());

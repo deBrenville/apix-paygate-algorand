@@ -131,9 +131,9 @@ Testnet USDCa — no real funds, fast; this jury track judges submitted material
 ## 9. What only Carsten can provide (Claude's hard limits)
 
 - **Three testnet accounts** (Claude never touches keys/wallets — security rule):
-  - **Agent** — signs payment to B. `.env`: `ONRAMP_PAYER_MNEMONIC`. Funded: USDC + ALGO, opted into USDC.
-  - **B (BSF Humanity)** — receives from agent, signs payment to A. `.env`: `ONRAMP_B_PAYER_MNEMONIC` (its payTo = its own address, derived). Funded: USDC (buffer) + ALGO, opted in.
-  - **A (Basic Ledger)** — receiver only, no signing in-app. `.env`: `ONRAMP_A_PAYTO_ADDRESS` (address only). Needs opt-in + a little ALGO, **no USDC**.
+  - **Agent** — signs payment to B. `.env`: `ONRAMP_AGENT_SENDER_MNEMONIC`. Funded: USDC + ALGO, opted into USDC.
+  - **B (BSF Humanity)** — receives from agent, signs payment to A. `.env`: `ONRAMP_SERVICE_B_SENDER_MNEMONIC` (its payTo = its own address, derived). Funded: USDC (buffer) + ALGO, opted in.
+  - **A (Basic Ledger)** — receiver only, no signing in-app. `.env`: `ONRAMP_SERVICE_C_RECEIVER_ADDRESS` (address only). Needs opt-in + a little ALGO, **no USDC**.
   - The APIX wrapper holds no funds in the core demo; an APIX-fee recipient address (`ONRAMP_APIX_PAYTO_ADDRESS`) is only needed if the platform fee is routed on-chain (stretch).
 - Recording the **video**; the **X profile handle**; **team details**; **submitting the form** (irreversible action).
 

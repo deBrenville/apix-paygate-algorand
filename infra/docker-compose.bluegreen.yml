@@ -7,8 +7,9 @@
 # only ingress, reaching the app by container_name on the shared network.
 #
 # The onramp is STATELESS (no DB): the cascade + upstreams are in-memory. The only boot-required
-# secret is ONRAMP_PAYER_MNEMONIC (the server-side payer that settles the inner hop), supplied from
-# an env_file on the box (${ONRAMP_ENV_FILE:-/opt/onramp/.env}) — never committed, never in the image.
+# secret is ONRAMP_SERVICE_B_SENDER_MNEMONIC (Service B's wallet — it signs hop 2, the background
+# payment to Service C), supplied from an env_file on the box (${ONRAMP_ENV_FILE:-/opt/onramp/.env})
+# — never committed, never in the image.
 
 services:
   onramp-a:

@@ -5,7 +5,7 @@ You do this once. **No app store, no wallet app needed.** Claude never sees or c
 ## What we need at the end
 
 - **One funded testnet account** (the "agent" that pays), holding **test ALGO**.
-- Its **25-word mnemonic** in `ONRAMP_PAYER_MNEMONIC` (a git-ignored `.env`), never committed.
+- Its **25-word mnemonic** in `ONRAMP_AGENT_SENDER_MNEMONIC` (a git-ignored `.env`), never committed.
 
 That's it. The demo prices calls in **native ALGO** (`asset:"0"`), so there is **no USDC opt-in and no USDC faucet** — just test ALGO. (We can switch the price asset to USDCa later via config if you get test USDC easily; the "pay-per-call on Algorand" story holds either way.)
 
@@ -23,7 +23,7 @@ That's it. The demo prices calls in **native ALGO** (`asset:"0"`), so there is *
 
 3. **Give me the mnemonic — safely.** Create `apix-x402-onramp/.env` (already git-ignored):
    ```
-   ONRAMP_PAYER_MNEMONIC="word1 word2 ... word25"
+   ONRAMP_AGENT_SENDER_MNEMONIC="word1 word2 ... word25"
    ONRAMP_PAYTO_ADDRESS="<the address from step 1>"
    ```
    `.env`, `*.mnemonic`, and `secrets/` are git-ignored. I read the env var at runtime; I never print or commit it. (`payTo` can be the same address — it pays itself in the demo.)
@@ -33,4 +33,4 @@ That's it. The demo prices calls in **native ALGO** (`asset:"0"`), so there is *
 - **ALGO** pays both the tiny network fees *and* the per-call price in the demo (native-asset x402).
 - No ASA opt-in is required for native ALGO — that's the whole reason we avoid USDC for the demo.
 
-Once `ONRAMP_PAYER_MNEMONIC` is set and the account is funded, the spike (Task 2) and the live demo (Task 8) can run for real. Everything else is built in parallel against stubs.
+Once `ONRAMP_AGENT_SENDER_MNEMONIC` is set and the account is funded, the spike (Task 2) and the live demo (Task 8) can run for real. Everything else is built in parallel against stubs.

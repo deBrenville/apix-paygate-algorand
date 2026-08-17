@@ -41,6 +41,29 @@ public interface OnrampConfig {
 
     List<Upstream> upstreams();
 
+    /** Cascade wallets — Service B (outer, route "humanity") and Service C (inner, "sanctions-basic"). */
+    ServiceB serviceB();
+
+    ServiceC serviceC();
+
+    /** Service B (outer): receives hop 1 from Agent A and signs hop 2 to Service C. */
+    interface ServiceB {
+        /** Service B's wallet — the hop-1 payTo and the signer of hop 2. Verified against the mnemonic at startup. */
+        String senderAddress();
+
+        /** Where Agent A pays on hop 1; defaults to the sender wallet unless explicitly split. */
+        String receiverAddress();
+
+        /** Service B's signing key for hop 2 (env-only, boot-critical). Empty in local build / tests. */
+        Optional<String> senderMnemonic();
+    }
+
+    /** Service C (inner): a pure receiver in the server — signs nothing, so only an address. */
+    interface ServiceC {
+        /** Where Service B pays on hop 2. */
+        String receiverAddress();
+    }
+
     /** One wrapped API: a public paywalled route that reverse-proxies to a private origin. */
     interface Upstream {
         /** Public route segment, e.g. "humanity" → POST /gw/humanity. */
