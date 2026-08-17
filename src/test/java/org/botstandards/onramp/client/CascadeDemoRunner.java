@@ -39,8 +39,8 @@ class CascadeDemoRunner {
 
     private static final String ALGOD = "https://testnet-api.algonode.cloud";
     private static final String CAPABILITY = "compliance.sanctions.screen.humanity";
-    private static final String SUBJECT = "Amara Okonkwo"; // the ISGH case — OFAC-only, humanity-serving
-    private static final String COUNTRY = "NG";
+    private static final String SUBJECT = "hello"; // demo content is irrelevant — the cascade is the point
+    private static final String COUNTRY = "";
 
     @ConfigProperty(name = "onramp.payer-mnemonic")
     Optional<String> agentMnemonic;
@@ -119,25 +119,22 @@ class CascadeDemoRunner {
         Response paid = given().header("X-PAYMENT", xPayment).contentType("application/json")
                 .body(body()).post(endpoint + "?lawfulBasisAttested=true");
         int status = paid.statusCode();
-        String outcome = paid.jsonPath().getString("outcome");
-        String register = paid.jsonPath().getString("matches[0].register");
-        String score = paid.jsonPath().getString("matches[0].score");
+        String message = paid.jsonPath().getString("message");
+        String innerMessage = paid.jsonPath().getString("innerResult.message");
         if (status == 200) {
             System.out.println("   HTTP 200 — paid; both hops settled on-chain (see the 'x402 settled' lines above)");
         } else {
             System.out.printf("   HTTP %d — settlement did NOT complete (see the errors above)%n", status);
         }
 
-        beat(4, "CASCADE — B discovered and paid the neutral ledger A over x402 (second hop)",
+        beat(4, "CASCADE — B discovered and paid the inner service A over x402 (second hop)",
                 "The service it paid (B) is itself an agent — it discovers and pays a second service (A) over x402.");
         System.out.println("   (server log above: a second 'x402 settled' line for the B->A hop)");
 
-        beat(5, "RESULT — neutral ledger + BSF humanity filter",
-                "The neutral ledger flags OFAC; the humanity layer returns MATCH_EXEMPT, keeping the record as evidence.");
-        System.out.printf("   outcome    : %s%n", outcome);
-        System.out.printf("   provenance : register=%s  score=%s%n", register, score);
-        System.out.printf("   exemption  : %s%n", paid.jsonPath().getString("exemption.reason"));
-        System.out.printf("   precedent  : %s%n", paid.jsonPath().getString("exemption.precedent"));
+        beat(5, "RESULT — the outer greeting nests the inner greeting it had to pay for",
+                "Service B answers 'Hello World B' and nests 'Hello World A' — the inner result it could only obtain by paying A.");
+        System.out.printf("   outer      : %s%n", message);
+        System.out.printf("   inner      : %s%n", innerMessage);
 
         beat(6, "ECONOMICS — value-add margin, machine to machine",
                 "The agent paid 0.03, B paid 0.01 and kept 0.02 — value-add pricing, machine to machine.");
@@ -146,11 +143,11 @@ class CascadeDemoRunner {
         System.out.println("=".repeat(72));
 
         // Hard gate — a broken take must fail RED, not narrate a green lie.
-        // 200 + MATCH_EXEMPT is only reachable when BOTH x402 hops settled: the second settlement
-        // (B->A) is a precondition for A returning the OFAC match that B then exempts.
+        // 200 + a nested "Hello World A" is only reachable when BOTH x402 hops settled: B can only
+        // nest A's greeting after the second settlement (B->A) actually went through on-chain.
         assertEquals(200, status, "paid call did not return 200 — a payment hop failed to settle");
-        assertEquals("MATCH_EXEMPT", outcome, "cascade did not complete — A unreachable or policy not applied");
-        assertEquals("OFAC", register, "provenance lost — expected the OFAC match from neutral ledger A");
+        assertEquals("Hello World B", message, "outer service B did not answer — B unreachable or gate failed");
+        assertEquals("Hello World A", innerMessage, "cascade did not complete — B did not settle the B->A hop");
     }
 
     // ---- helpers -------------------------------------------------------------------------------

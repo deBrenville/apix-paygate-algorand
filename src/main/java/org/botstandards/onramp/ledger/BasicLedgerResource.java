@@ -9,35 +9,26 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import org.botstandards.apix.verification.sanctions.SanctionsMatch;
-import org.botstandards.apix.verification.sanctions.SanctionsMatcher;
-import org.botstandards.apix.verification.sanctions.SanctionsOutcome;
-import org.botstandards.apix.verification.sanctions.SanctionsSubject;
 import org.botstandards.onramp.gateway.OnrampConfig;
-import org.botstandards.onramp.ledger.SanctionsFixtures.LoadedEntry;
 
 /**
- * Upstream A — the neutral global sanctions ledger. Stateless: it screens a subject against every
- * register with the real {@link SanctionsMatcher}, aggregates one match per register, and returns
- * the §3a match-proof. No exemption logic here (that is the humanity layer's job).
+ * Upstream A — the inner demo service ("Hello World A"): the 0-hop gated leaf of the cascade.
+ * Reachable only via the gateway (which injects the shared forward secret) and settled over x402
+ * by the outer service B. The content is deliberately trivial — the demo proves the <em>payment
+ * cascade</em> and server-side chaining, not any domain logic. The real sanctions/humanity services
+ * live in the same repo (the {@code sanctions}/{@code humanity} domain classes) for later, non-demo use.
  *
- * <p>Private origin: only reachable via the gateway, which injects the shared forward secret.
+ * <p>Private origin: only reachable via the gateway. No payload is required; any JSON body is accepted.
  */
 @Path("/internal/ledger")
 public class BasicLedgerResource {
 
     @Inject
-    SanctionsFixtures fixtures;
-
-    @Inject
     OnrampConfig config;
 
-    private final SanctionsMatcher matcher = new SanctionsMatcher();
-
+    /** Optional demo payload; the inner service ignores it (content is irrelevant to the demo). */
     public record ScreenRequest(String name, String country) {}
 
     @POST
@@ -48,45 +39,11 @@ public class BasicLedgerResource {
         if (!config.internalForwardSecret().equals(forwardSecret)) {
             return Response.status(403).entity(Map.of("error", "forbidden")).build();
         }
-        if (req == null || req.name() == null || req.name().isBlank()) {
-            return Response.status(400).entity(Map.of("error", "name is required")).build();
-        }
-
-        SanctionsSubject subject = new SanctionsSubject(req.name(), req.country(), null, true);
-        List<MatchProof.ProofMatch> matches = new ArrayList<>();
-
-        for (String register : fixtures.registers()) {
-            List<LoadedEntry> loaded = fixtures.loaded(register);
-            List<org.botstandards.apix.verification.sanctions.SanctionsListEntry> entries =
-                    loaded.stream().map(LoadedEntry::entry).toList();
-            SanctionsMatch m = matcher.match(subject, entries);
-            if (m.outcome() == SanctionsOutcome.CLEAR || m.matchedEntry() == null) {
-                continue;
-            }
-            LoadedEntry hit = loaded.stream().filter(le -> le.entry() == m.matchedEntry()).findFirst().orElse(null);
-            matches.add(new MatchProof.ProofMatch(
-                    register,
-                    hit != null ? hit.id() : null,
-                    strength(m.outcome()),
-                    m.score(),
-                    hit != null ? hit.sourceRecord() : Map.of()));
-        }
-
-        Map<String, String> query = new LinkedHashMap<>();
-        query.put("name", req.name());
-        query.put("country", req.country() == null ? "" : req.country());
-
-        MatchProof proof = new MatchProof(
-                matches.isEmpty() ? "CLEAR" : "MATCH",
-                query,
-                matches,
-                null,
-                Instant.now().toString(),
-                "fixtures-v1");
-        return Response.ok(proof).build();
-    }
-
-    private static String strength(SanctionsOutcome outcome) {
-        return outcome == SanctionsOutcome.HIT_STRONG ? "STRONG" : "WEAK";
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("service", "A");
+        body.put("message", "Hello World A");
+        body.put("note", "inner service — you reached me only because service B discovered and paid me over x402");
+        body.put("settledAt", Instant.now().toString());
+        return Response.ok(body).build();
     }
 }

@@ -1,6 +1,14 @@
 quarkus:
   http:
     port: 8080
+    # Behind the central Caddy (demo.api-index.org): trust its X-Forwarded-* headers so UriInfo
+    # #getBaseUri() reports the PUBLIC https URL, not the internal onramp-a:8080. This is what makes
+    # the BSM gw-URLs, the discovery-facade rebasing, and the 402 terms show demo.api-index.org.
+    # Safe because the onramp publishes no host ports — only Caddy can reach it on the shared network.
+    proxy:
+      proxy-address-forwarding: true
+      enable-forwarded-host: true
+      enable-forwarded-prefix: true
   log:
     level: INFO
 
@@ -15,26 +23,28 @@ onramp:
   # Shared secret the gateway injects to internal origins (they reject requests without it).
   internal-forward-secret: "internal-s3cr3t"
   upstreams:
-    # Upstream A — neutral basic sanctions ledger (all registers, unfiltered).
+    # Upstream A — the INNER demo service ("Hello World A"): the 0-hop gated leaf of the cascade.
+    # Its receiver is the background service ("SERVICE B" in the wallet naming) — the one paid by the
+    # outer service, not by the agent. Default = SERVICE B's public (opted-in) testnet address.
     - route: "sanctions-basic"
       upstream-url: "http://localhost:8080/internal/ledger/screen"
       forward-secret: "internal-s3cr3t"
-      # A's receiver. Faucet-free demo default = the agent's (opted-in) address.
-      pay-to: "${ONRAMP_A_PAYTO_ADDRESS:Q2XTPIACCO27OZ7ROPPT5SU5HLAZCELVGEGGSGRIMQBP5TBXHOHZWN6GOY}"
+      pay-to: "${ONRAMP_A_PAYTO_ADDRESS:EO63ZQECPU7IMHTSWOZKH7YBBS73PY72RJKCAMI3LHFT6LGMIR2W5ECIBE}"
       price-micros: 10000
       requires-attestation: true
       capability: "compliance.sanctions.screen"
-      description: "Neutral global sanctions ledger — all registers, match-proof"
-    # Upstream B — BSF humanity value layer (chains to A over x402, keeps a margin).
+      description: "Inner demo service — returns Hello World A; the 0-hop gated leaf of the cascade"
+    # Upstream B — the OUTER demo service ("Hello World B"): what the agent calls and pays. It chains
+    # to A over x402 on its own wallet, keeping a margin. Its receiver ("SERVICE A" in the wallet
+    # naming) is the one the agent pays. Default = SERVICE A's public (opted-in) testnet address.
     - route: "humanity"
       upstream-url: "http://localhost:8080/internal/humanity/screen"
       forward-secret: "internal-s3cr3t"
-      # B's receiver = B's own (opted-in) address.
       pay-to: "${ONRAMP_B_PAYTO_ADDRESS:GVRXJLXF6OJLRIV46CRIXLG3DX3RJYBBAGRKNNYLHWOAHG57GKWHDH6ZAE}"
       price-micros: 30000
       requires-attestation: true
       capability: "compliance.sanctions.screen.humanity"
-      description: "BSF humanity-filtered sanctions screening — chains the neutral ledger"
+      description: "Outer demo service — returns Hello World B; discovers and pays the inner service over x402"
     # Free echo upstream — used by ReverseProxyResourceTest (no payment).
     - route: "echo"
       upstream-url: "http://localhost:8089/echo"

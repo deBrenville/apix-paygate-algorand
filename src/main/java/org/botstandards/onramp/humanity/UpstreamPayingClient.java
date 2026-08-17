@@ -1,26 +1,28 @@
 package org.botstandards.onramp.humanity;
 
 import com.algorand.algosdk.account.Account;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.Map;
 import java.util.Optional;
 import org.botstandards.onramp.discovery.ApixDiscoveryClient;
-import org.botstandards.onramp.ledger.MatchProof;
 import org.botstandards.onramp.x402.X402PayingCaller;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
- * Upstream B's outbound leg: discovers the neutral ledger (A) via the real APIX registry search
- * (by capability), then pays it over x402 — the payment terms come entirely from A's 402. B never
- * hardcodes A's URL or its payment address. Subject travels in the POST body only.
+ * Upstream B's outbound leg — the server-side cascade payer. It discovers the inner service (A) via
+ * the real APIX registry search (by capability), then pays it over x402: the payment terms come
+ * entirely from A's 402 response, so B never hardcodes A's URL or its payment address. This is the
+ * "server-side chaining" the demo showcases — one gated service consuming <em>and paying</em> another
+ * in the background, on its own wallet ({@code ONRAMP_B_PAYER_MNEMONIC}).
  */
 @ApplicationScoped
 public class UpstreamPayingClient {
 
-    /** The capability B searches the registry for to find the neutral ledger. */
-    private static final String LEDGER_CAPABILITY = "compliance.sanctions.ledger";
+    /** The capability B searches the registry for to find the inner service. */
+    private static final String INNER_CAPABILITY = "compliance.sanctions.ledger";
 
     @Inject
     ApixDiscoveryClient discovery;
@@ -33,22 +35,26 @@ public class UpstreamPayingClient {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public MatchProof screen(String name, String country) {
+    /**
+     * Discover the inner service by capability and settle its x402 price on B's own wallet, returning
+     * the inner service's raw JSON response ("Hello World A"). The demo content is irrelevant; what the
+     * cascade proves is that this hop is a real, gated, on-chain-settled call B makes on its own.
+     */
+    public Map<String, Object> callInner() {
         String mnemonic = bPayerMnemonic
                 .map(UpstreamPayingClient::unquote)
                 .orElseThrow(() -> new IllegalStateException("ONRAMP_B_PAYER_MNEMONIC not set"));
         try {
             Account payer = new Account(mnemonic);
-            String ledgerEndpoint = discovery.endpointByCapability(LEDGER_CAPABILITY);
-            String body = mapper.writeValueAsString(
-                    Map.of("name", name, "country", country == null ? "" : country));
+            String innerEndpoint = discovery.endpointByCapability(INNER_CAPABILITY);
+            String body = mapper.writeValueAsString(Map.of("name", "hello", "country", ""));
             String responseJson = payingCaller.callPaid(
-                    ledgerEndpoint, "?lawfulBasisAttested=true&purpose=sanctions-screening", body, payer);
-            return mapper.readValue(responseJson, MatchProof.class);
+                    innerEndpoint, "?lawfulBasisAttested=true&purpose=demo", body, payer);
+            return mapper.readValue(responseJson, new TypeReference<Map<String, Object>>() {});
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("cascade call to A failed: " + e.getMessage(), e);
+            throw new IllegalStateException("cascade call to inner service A failed: " + e.getMessage(), e);
         }
     }
 

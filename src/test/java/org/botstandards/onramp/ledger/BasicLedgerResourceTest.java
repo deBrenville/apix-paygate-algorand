@@ -1,56 +1,41 @@
 package org.botstandards.onramp.ledger;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
-/** Upstream A: neutral per-register aggregation, match-proof, forward-secret guard. No exemption here. */
+/** Upstream A — the inner "Hello World A" demo leaf: trivial greeting, guarded by the forward secret. */
 @QuarkusTest
 class BasicLedgerResourceTest {
 
     private static final String SECRET = "internal-s3cr3t";
 
     @Test
-    void multiRegisterActorReturnsAllMatches() {
+    void innerServiceReturnsHelloWorldA() {
         given().header("X-Onramp-Forward", SECRET).contentType("application/json")
-                .body("{\"name\":\"Viktor Malenkov\",\"country\":\"RU\"}")
+                .body("{\"name\":\"hello\",\"country\":\"\"}")
                 .when().post("/internal/ledger/screen")
                 .then().statusCode(200)
-                .body("outcome", is("MATCH"))
-                .body("matches.register", hasItem("UN"))
-                .body("matches.register", hasItem("OFAC"));
+                .body("service", is("A"))
+                .body("message", is("Hello World A"));
     }
 
     @Test
-    void ofacOnlyActorIsNeutralMatchHereNoExemption() {
-        // The ISGH-like case: listed only by OFAC. The neutral ledger reports it as a plain MATCH.
+    void emptyBodyIsAccepted() {
+        // Content is irrelevant to the demo — an empty JSON body still gets the greeting.
         given().header("X-Onramp-Forward", SECRET).contentType("application/json")
-                .body("{\"name\":\"Amara Okonkwo\",\"country\":\"NG\"}")
+                .body("{}")
                 .when().post("/internal/ledger/screen")
                 .then().statusCode(200)
-                .body("outcome", is("MATCH"))
-                .body("matches.size()", is(1))
-                .body("matches[0].register", is("OFAC"))
-                .body("matches[0].sourceRecord.primaryName", is("Amara Okonkwo"));
-    }
-
-    @Test
-    void unlistedNameIsClear() {
-        given().header("X-Onramp-Forward", SECRET).contentType("application/json")
-                .body("{\"name\":\"John Smith\",\"country\":\"US\"}")
-                .when().post("/internal/ledger/screen")
-                .then().statusCode(200)
-                .body("outcome", is("CLEAR"))
-                .body("matches.size()", is(0));
+                .body("message", is("Hello World A"));
     }
 
     @Test
     void missingForwardSecretForbidden() {
         given().contentType("application/json")
-                .body("{\"name\":\"Viktor Malenkov\",\"country\":\"RU\"}")
+                .body("{\"name\":\"hello\"}")
                 .when().post("/internal/ledger/screen")
                 .then().statusCode(403);
     }

@@ -1,0 +1,49 @@
+# apix-x402-onramp site block for the CENTRAL apix-registry Caddyfile — the live cascade demo.
+#
+# This is a snippet, not a standalone Caddyfile. It is added into the central apix-registry Caddyfile
+# via that repo's own deploy pipeline (which overwrites the box Caddyfile from the repo — so this MUST
+# be committed there, never hand-edited on the box). The `*.api-index.org` wildcard DNS already
+# resolves, so Caddy provisions the Let's Encrypt cert for demo.api-index.org on first request.
+#
+# The onramp is deployed blue-green from ITS OWN repo/pipeline as an onramp-a/onramp-b pair joining the
+# existing infra_default network as external (apix-x402-onramp/infra/docker-compose.bluegreen.yml +
+# deploy-bluegreen.sh). No DB. So the central Caddy just needs this vhost pointing at the pair — same
+# shape as registry-a/-b and paygate-a/-b.
+
+demo.api-index.org {
+	encode zstd gzip
+
+	# Public demo surface (default-deny allowlist):
+	#   /                     the onramp self-description (JSON, agent-native)
+	#   /apix, /apix/*        the APIX discovery facade (browse services by capability)
+	#   /services, /services/*  the registry search facade (GET /services?capability=…)
+	#   /.well-known/bsm/*    the per-route BSM payment terms
+	#   /gw/*                 the x402 gate: 402 -> pay -> proxied call (the cascade entry point)
+	# Everything else 404s — crucially /internal/* (the private upstreams, reachable ONLY via the gate,
+	# which injects the shared forward secret) and /q/* (Quarkus management). Defense in depth: the
+	# upstreams also reject any request without the forward secret, so this is a second lock.
+	@allowed path / /apix /apix/* /services /services/* /.well-known/bsm/* /gw/*
+	handle @allowed {
+		reverse_proxy onramp-a:8080 onramp-b:8080 {
+			lb_policy       first
+			health_uri      /
+			health_interval 5s
+			fail_duration   30s
+		}
+	}
+
+	# Private upstreams (/internal/*), Quarkus management (/q/*), and any unknown path -> 404.
+	handle {
+		respond 404
+	}
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# The onramp serves JSON only (agent-native) — no inline HTML/JS/wallet here, so keep the CSP
+		# strict. If a human-facing "Run the cascade" page with a wallet is added later, widen it then.
+		Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	}
+}

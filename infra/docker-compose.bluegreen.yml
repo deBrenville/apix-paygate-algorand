@@ -1,0 +1,56 @@
+# Blue-green container pair for the APIX x402 Onramp — the live demo/cascade at demo.api-index.org.
+#
+# Own pipeline in this repo. The a/b pair joins the EXISTING Docker network apix-registry's compose
+# created (project "infra" -> network "infra_default"), referenced here as the *external* "caddynet",
+# so the central Caddy (the demo.api-index.org vhost in apix-registry/infra/Caddyfile) health-routes
+# between onramp-a and onramp-b exactly like registry-a/-b. No host ports published — Caddy is the
+# only ingress, reaching the app by container_name on the shared network.
+#
+# The onramp is STATELESS (no DB): the cascade + upstreams are in-memory. The only boot-required
+# secret is ONRAMP_PAYER_MNEMONIC (the server-side payer that settles the inner hop), supplied from
+# an env_file on the box (${ONRAMP_ENV_FILE:-/opt/onramp/.env}) — never committed, never in the image.
+
+services:
+  onramp-a:
+    image: apix-x402-onramp:latest
+    container_name: onramp-a
+    env_file:
+      # Overridable so a no-root deploy can point at a home path (export ONRAMP_ENV_FILE).
+      - ${ONRAMP_ENV_FILE:-/opt/onramp/.env}
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.75
+    networks:
+      - caddynet
+
+  onramp-b:
+    image: apix-x402-onramp:latest
+    container_name: onramp-b
+    env_file:
+      - ${ONRAMP_ENV_FILE:-/opt/onramp/.env}
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.75
+    networks:
+      - caddynet
+
+networks:
+  # The network apix-registry's compose already created. Override CADDY_NETWORK only if that compose
+  # runs under a non-default project name (verify with `docker network ls`).
+  caddynet:
+    external: true
+    name: ${CADDY_NETWORK:-infra_default}

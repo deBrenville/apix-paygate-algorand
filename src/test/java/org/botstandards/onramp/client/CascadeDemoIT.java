@@ -1,7 +1,6 @@
 package org.botstandards.onramp.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.algorand.algosdk.account.Account;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,10 +17,10 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The live cascade over REAL APIX discovery (run with -Dx402.live=true): the agent searches the
- * registry by capability to find B, pays B over x402; B searches for and pays the neutral ledger A;
- * A returns the match-proof; B applies the pro-humanity filter -> MATCH_EXEMPT for the ISGH case.
- * Two real on-chain settlements. Discovery is served by the self-contained facade (captured real
- * registry responses); the facilitator is the live GoPlausible one.
+ * registry by capability to find the outer service B, pays B over x402; B searches for and pays the
+ * inner service A; A returns "Hello World A"; B nests it under its own "Hello World B" and returns.
+ * Two real on-chain settlements per call. Discovery is served by the self-contained facade (captured
+ * real registry responses); the facilitator is the live GoPlausible one.
  */
 @QuarkusTest
 @TestProfile(CascadeLiveProfile.class)
@@ -39,21 +38,21 @@ class CascadeDemoIT {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void cascadeExemptsIsghCase() throws Exception {
+    void cascadeReturnsHelloWorldBNestingHelloWorldA() throws Exception {
         Assumptions.assumeTrue(Boolean.getBoolean("x402.live"), "live cascade — run with -Dx402.live=true");
         Assumptions.assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_PAYER_MNEMONIC");
 
         Account agent = new Account(unquote(agentMnemonic.get()));
-        String humanityEndpoint = discovery.endpointByCapability("compliance.sanctions.screen.humanity");
+        String outerEndpoint = discovery.endpointByCapability("compliance.sanctions.screen.humanity");
 
         String json = caller.callPaid(
-                humanityEndpoint, "?lawfulBasisAttested=true",
-                "{\"name\":\"Amara Okonkwo\",\"country\":\"NG\"}", agent);
+                outerEndpoint, "?lawfulBasisAttested=true",
+                "{\"name\":\"hello\",\"country\":\"\"}", agent);
 
         JsonNode result = mapper.readTree(json);
-        assertEquals("MATCH_EXEMPT", result.path("outcome").asText());
-        assertFalse(result.path("exemption").path("reason").asText().isBlank());
-        assertEquals("OFAC", result.path("matches").path(0).path("register").asText());
+        // Outer greeting (hop 1: agent -> B settled) nesting the inner greeting (hop 2: B -> A settled).
+        assertEquals("Hello World B", result.path("message").asText());
+        assertEquals("Hello World A", result.path("innerResult").path("message").asText());
     }
 
     private static String unquote(String raw) {
