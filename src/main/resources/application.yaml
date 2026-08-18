@@ -22,6 +22,11 @@ onramp:
   price-asset-id: "10458941"
   # Shared secret the gateway injects to internal origins (they reject requests without it).
   internal-forward-secret: "internal-s3cr3t"
+  # Discovery: the REAL APIX registry. The agent AND the cascade's inner hop discover services here by
+  # capability (HATEOAS: root → services-search → endpoint) — no fake facade in production. The demo
+  # services must be registered in api-index.org (stage DEVELOPMENT) pointing at this app's /gw routes.
+  # Overridable via ONRAMP_REGISTRY_URL (e.g. a staging registry).
+  registry-url: "${ONRAMP_REGISTRY_URL:https://api-index.org/}"
 
   # ── Cascade wallets — flow: Agent A → Service B → Service C ─────────────────
   # Service B (the OUTER service, route "hello"): receives hop 1 from Agent A AND sends hop 2 to
@@ -91,3 +96,5 @@ onramp:
       test-port: 8080
   onramp:
     facilitator-url: "http://localhost:8089"
+    # Tests use the self-contained facade (captured registry responses) — the suite stays network-free.
+    registry-url: "http://localhost:8080/apix"
