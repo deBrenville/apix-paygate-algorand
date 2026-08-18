@@ -16,7 +16,9 @@ class DemoRegistryResourceTest {
         given().when().get("/apix/services?capability=demo.hello&stage=DEVELOPMENT")
                 .then().statusCode(200)
                 .body("total", is(1))
-                .body("_embedded.items[0].endpoint", containsString("/gw/hello"));
+                .body("_embedded.items[0].endpoint", containsString("/gw/hello"))
+                // UTF-8 round-trip guard: the em-dash must survive serialization (regression: was mojibake).
+                .body("_embedded.items[0].name", containsString("Hello World B — outer"));
     }
 
     @Test

@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
  * In production the agent queries the live api-index.org instead — same shape, same links.
  */
 @Path("/apix")
-@Produces(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
 public class DemoRegistryResource {
 
     /** The registry base URL baked into the captured responses; rewritten to this facade on serve. */
@@ -43,14 +43,16 @@ public class DemoRegistryResource {
             return Response.ok(EMPTY).build();
         }
         String body = load("demo-registry/" + capability + ".json");
-        return Response.ok(body != null ? rebase(body, uriInfo) : EMPTY).build();
+        String out = body != null ? rebase(body, uriInfo) : EMPTY;
+        return Response.ok(out.getBytes(StandardCharsets.UTF_8)).build();
     }
 
     /** GET /apix — the captured HATEOAS discovery root (entry point; follow _links.services-search). */
     @GET
     public Response root(@Context UriInfo uriInfo) {
         String body = load("demo-registry/root.json");
-        return Response.ok(body != null ? rebase(body, uriInfo) : "{}").build();
+        String out = body != null ? rebase(body, uriInfo) : "{}";
+        return Response.ok(out.getBytes(StandardCharsets.UTF_8)).build();
     }
 
     /** Rewrites the captured registry + gateway bases to the current request's base URI, so both the
