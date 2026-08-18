@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 class CascadeDemoRunner {
 
     private static final String ALGOD = "https://testnet-api.algonode.cloud";
-    private static final String CAPABILITY = "compliance.sanctions.screen.humanity";
+    private static final String CAPABILITY = "demo.hello";
     private static final String SUBJECT = "hello"; // demo content is irrelevant — the cascade is the point
     private static final String COUNTRY = "";
 

@@ -17,14 +17,14 @@ class ApixDiscoveryClientTest {
     ApixDiscoveryClient discovery;
 
     @Test
-    void followsRootThenSearchToHumanityEndpoint() {
-        String endpoint = discovery.endpointByCapability("compliance.sanctions.screen.humanity");
-        assertTrue(endpoint.endsWith("/gw/humanity"), "got: " + endpoint);
+    void followsRootThenSearchToOuterEndpoint() {
+        String endpoint = discovery.endpointByCapability("demo.hello");
+        assertTrue(endpoint.endsWith("/gw/hello"), "got: " + endpoint);
     }
 
     @Test
-    void followsRootThenSearchToLedgerEndpoint() {
-        String endpoint = discovery.endpointByCapability("compliance.sanctions.ledger");
-        assertTrue(endpoint.endsWith("/gw/sanctions-basic"), "got: " + endpoint);
+    void followsRootThenSearchToInnerEndpoint() {
+        String endpoint = discovery.endpointByCapability("demo.hello.inner");
+        assertTrue(endpoint.endsWith("/gw/hello-inner"), "got: " + endpoint);
     }
 }

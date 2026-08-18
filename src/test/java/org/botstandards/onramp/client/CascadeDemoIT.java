@@ -43,7 +43,7 @@ class CascadeDemoIT {
         Assumptions.assumeTrue(agentMnemonic.isPresent(), "need ONRAMP_AGENT_SENDER_MNEMONIC");
 
         Account agent = new Account(unquote(agentMnemonic.get()));
-        String outerEndpoint = discovery.endpointByCapability("compliance.sanctions.screen.humanity");
+        String outerEndpoint = discovery.endpointByCapability("demo.hello");
 
         String json = caller.callPaid(
                 outerEndpoint, "?lawfulBasisAttested=true",

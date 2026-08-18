@@ -21,7 +21,7 @@ import org.botstandards.onramp.x402.X402PayingCaller;
 public class UpstreamPayingClient {
 
     /** The capability B searches the registry for to find the inner service. */
-    private static final String INNER_CAPABILITY = "compliance.sanctions.ledger";
+    private static final String INNER_CAPABILITY = "demo.hello.inner";
 
     @Inject
     ApixDiscoveryClient discovery;

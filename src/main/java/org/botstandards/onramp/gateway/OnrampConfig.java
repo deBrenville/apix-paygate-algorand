@@ -25,9 +25,9 @@ public interface OnrampConfig {
     @WithDefault("http://localhost:8080")
     String selfBaseUrl();
 
-    /** The route the humanity layer discovers and pays downstream (Upstream A). */
-    @WithDefault("sanctions-basic")
-    String humanityDownstreamRoute();
+    /** The route the outer service discovers and pays downstream (the inner service). */
+    @WithDefault("hello-inner")
+    String downstreamRoute();
 
     /** The APIX registry base URL agents search for discovery (GET /services?capability=…).
      *  Defaults to the self-contained demo facade (captured real responses); override to a live
@@ -41,7 +41,7 @@ public interface OnrampConfig {
 
     List<Upstream> upstreams();
 
-    /** Cascade wallets — Service B (outer, route "humanity") and Service C (inner, "sanctions-basic"). */
+    /** Cascade wallets — Service B (outer, route "hello") and Service C (inner, "hello-inner"). */
     ServiceB serviceB();
 
     ServiceC serviceC();
@@ -66,7 +66,7 @@ public interface OnrampConfig {
 
     /** One wrapped API: a public paywalled route that reverse-proxies to a private origin. */
     interface Upstream {
-        /** Public route segment, e.g. "humanity" → POST /gw/humanity. */
+        /** Public route segment, e.g. "hello" → POST /gw/hello. */
         String route();
 
         /** Private origin URL the gateway forwards paid requests to. */
@@ -86,7 +86,7 @@ public interface OnrampConfig {
         @WithDefault("false")
         boolean requiresAttestation();
 
-        /** APIX capability advertised in the BSM, e.g. "compliance.sanctions.screen". */
+        /** APIX capability advertised in the BSM, e.g. "demo.hello.inner". */
         String capability();
 
         String description();

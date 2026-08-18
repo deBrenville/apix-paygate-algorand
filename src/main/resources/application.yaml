@@ -24,7 +24,7 @@ onramp:
   internal-forward-secret: "internal-s3cr3t"
 
   # ── Cascade wallets — flow: Agent A → Service B → Service C ─────────────────
-  # Service B (the OUTER service, route "humanity"): receives hop 1 from Agent A AND sends hop 2 to
+  # Service B (the OUTER service, route "hello"): receives hop 1 from Agent A AND sends hop 2 to
   # Service C. Both roles are the same wallet, so receiver-address defaults to sender-address — you
   # set only ONE address in the .env. To split receiving from the sending wallet later, override
   # ONRAMP_SERVICE_B_RECEIVER_ADDRESS explicitly (then the two intentionally diverge).
@@ -33,31 +33,31 @@ onramp:
     receiver-address: "${ONRAMP_SERVICE_B_RECEIVER_ADDRESS:${onramp.service-b.sender-address}}"
     # sender-mnemonic: env only (ONRAMP_SERVICE_B_SENDER_MNEMONIC) — boot-critical, no default;
     # verified at startup against sender-address by ServiceBWalletCheck (fail-fast on mismatch).
-  # Service C (the INNER service, route "sanctions-basic"): receives hop 2 from Service B. It is a
+  # Service C (the INNER service, route "hello-inner"): receives hop 2 from Service B. It is a
   # pure receiver in the server — signs nothing, so no secret here, only its public address.
   service-c:
     receiver-address: "${ONRAMP_SERVICE_C_RECEIVER_ADDRESS:EO63ZQECPU7IMHTSWOZKH7YBBS73PY72RJKCAMI3LHFT6LGMIR2W5ECIBE}"
 
   upstreams:
-    # INNER demo service ("Hello World A"), route "sanctions-basic" — the 0-hop gated leaf. It is
+    # INNER demo service ("Hello World A"), route "hello-inner" — the 0-hop gated leaf. It is
     # paid by Service B on hop 2, so its receiver IS Service C. payTo tracks service-c.receiver-address.
-    - route: "sanctions-basic"
+    - route: "hello-inner"
       upstream-url: "http://localhost:8080/internal/ledger/screen"
       forward-secret: "internal-s3cr3t"
       pay-to: "${onramp.service-c.receiver-address}"
       price-micros: 10000
       requires-attestation: true
-      capability: "compliance.sanctions.screen"
+      capability: "demo.hello.inner"
       description: "Inner demo service — returns Hello World A; the 0-hop gated leaf of the cascade"
-    # OUTER demo service ("Hello World B"), route "humanity" — what Agent A calls and pays (hop 1).
+    # OUTER demo service ("Hello World B"), route "hello" — what Agent A calls and pays (hop 1).
     # It discovers and pays the inner service over x402 (hop 2). payTo tracks service-b.receiver-address.
-    - route: "humanity"
+    - route: "hello"
       upstream-url: "http://localhost:8080/internal/humanity/screen"
       forward-secret: "internal-s3cr3t"
       pay-to: "${onramp.service-b.receiver-address}"
       price-micros: 30000
       requires-attestation: true
-      capability: "compliance.sanctions.screen.humanity"
+      capability: "demo.hello"
       description: "Outer demo service — returns Hello World B; discovers and pays the inner service over x402"
     # Free echo upstream — used by ReverseProxyResourceTest (no payment).
     - route: "echo"

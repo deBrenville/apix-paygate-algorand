@@ -13,17 +13,17 @@ class DemoRegistryResourceTest {
 
     @Test
     void searchByCapabilityReturnsCapturedService() {
-        given().when().get("/apix/services?capability=compliance.sanctions.screen.humanity&stage=DEVELOPMENT")
+        given().when().get("/apix/services?capability=demo.hello&stage=DEVELOPMENT")
                 .then().statusCode(200)
                 .body("total", is(1))
-                .body("_embedded.items[0].endpoint", containsString("/gw/humanity"));
+                .body("_embedded.items[0].endpoint", containsString("/gw/hello"));
     }
 
     @Test
-    void ledgerCapabilityResolvesToBasicLedger() {
-        given().when().get("/apix/services?capability=compliance.sanctions.ledger&stage=DEVELOPMENT")
+    void innerCapabilityResolvesToInnerService() {
+        given().when().get("/apix/services?capability=demo.hello.inner&stage=DEVELOPMENT")
                 .then().statusCode(200)
-                .body("_embedded.items[0].endpoint", containsString("/gw/sanctions-basic"));
+                .body("_embedded.items[0].endpoint", containsString("/gw/hello-inner"));
     }
 
     @Test
